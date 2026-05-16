@@ -322,7 +322,7 @@
         history.forEach(item => {
             let row = tbody.insertRow();
             row.innerHTML = `
-                <td>${new Date(item.a).toLocaleDateString('en-GB')} - ${new Date(item.b).toLocaleDateString('en-GB')}</td>
+                <td>${formatDateDDMMYYYY(item.a)} - ${formatDateDDMMYYYY(item.b)}</td>
                 <td>${item.f}</td><td>${item.g.toFixed(2)}</td><td>${item.h.toFixed(2)}</td>
                 <td class="accumulated">${item.k_val.toFixed(2)}</td><td class="accumulated">${item.l_val.toFixed(2)}</td>
                 <td>${new Date(item.o).toLocaleDateString('en-GB')} - ${new Date(item.p).toLocaleDateString('en-GB')}</td>
@@ -339,7 +339,7 @@
         csvContent += headers.join(",") + "\n";
         history.forEach(item => {
             let row = [
-                `"${new Date(item.a).toLocaleDateString('en-GB')} - ${new Date(item.b).toLocaleDateString('en-GB')}"`,
+                `"${formatDateDDMMYYYY(item.a)} - ${formatDateDDMMYYYY(item.b)}"`,
                 item.f, item.g.toFixed(2), item.h.toFixed(2), item.k_val.toFixed(2), item.l_val.toFixed(2),
                 `"${new Date(item.o).toLocaleDateString('en-GB')} - ${new Date(item.p).toLocaleDateString('en-GB')}"`,
                 `"${item.q}"`, item.r_diff, item.finalEL.toFixed(2), item.finalML.toFixed(2)
