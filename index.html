@@ -3,29 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <title>पुणे महानगरपालिका रजा नोंद व कर्मचारी व्यवस्थापन प्रणाली</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f7f6; padding: 20px; }
         .container { max-width: 1350px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         h2 { text-align: center; color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 10px; margin-bottom: 20px; }
         
-        /* नेव्हिगेशन टॅब्ज */
         .tab-bar { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
         .tab-btn { padding: 12px 25px; border: none; background-color: #e0e0e0; font-size: 15px; font-weight: bold; cursor: pointer; border-radius: 5px; transition: 0.3s; }
         .tab-btn.active { background-color: #1a73e8; color: white; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        /* फॉर्म बॉक्स स्टाईल्स */
         .setup-box { background: #e3f2fd; padding: 15px; border-radius: 8px; border: 1px solid #bbdefb; margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
         .entry-box { background: #fffde7; padding: 15px; border-radius: 8px; border: 1px solid #fbc02d; margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; }
         .encash-box { background: #e8f5e9; padding: 20px; border-radius: 8px; border: 1px solid #a5d6a7; margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
         .info-box { background: #fce4ec; padding: 20px; border-radius: 8px; border: 1px solid #f8bbd0; margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
         
         label { font-weight: bold; font-size: 13px; display: block; margin-bottom: 5px; color: #333; }
-        input, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 14px; }
+        input, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 14px; background-color: #fff; }
         input:disabled, input[readonly] { background-color: #eee; color: #555; }
         
-        /* बटणे */
         .btn-group { display: flex; gap: 10px; margin-top: 18px; }
         .btn-add { background-color: #1a73e8; color: white; padding: 12px; border: none; border-radius: 5px; cursor: pointer; flex: 2; font-size: 16px; font-weight: bold; }
         .btn-excel { background-color: #2e7d32; color: white; padding: 12px; border: none; border-radius: 5px; cursor: pointer; flex: 1.5; font-size: 16px; font-weight: bold; }
@@ -34,7 +32,6 @@
         .btn-excel:hover { background-color: #1b5e20; }
         .btn-delete:hover { background-color: #b71c1c; }
         
-        /* तक्ता */
         table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 11px; }
         th, td { border: 1px solid #ddd; padding: 6px; text-align: center; }
         th { background-color: #1a73e8; color: white; }
@@ -42,10 +39,7 @@
         .highlight { font-weight: bold; color: #1a73e8; background: #e8f0fe; }
         .accumulated { color: #2e7d32; font-weight: bold; background: #f1f8e9; }
         
-        /* निकाल कार्ड */
         .result-card { background: #ffffff; padding: 15px; border: 2px dashed #2e7d32; border-radius: 8px; margin-top: 20px; text-align: center; font-size: 18px; font-weight: bold; color: #1b5e20; }
-        
-        /* तळटीप संदेश */
         .footer-msg { margin-top: 30px; padding: 15px; background-color: #eeeeee; border-radius: 8px; text-align: center; font-size: 14px; color: #333; border: 1px solid #ccc; }
     </style>
 </head>
@@ -54,19 +48,17 @@
 <div class="container">
     <h2>पुणे महानगरपालिका रजा नोंद व सेवानिवृत्ती व्यवस्थापन प्रणाली</h2>
 
-    <!-- टॅब बार -->
     <div class="tab-bar">
         <button class="tab-btn active" onclick="switchTab('page1')">१. रजा नोंदणी पुस्तिका (सर्व पाने)</button>
         <button class="tab-btn" onclick="switchTab('page2')">२. निवृत्ती शिल्लक रजा वेतन (Encashment)</button>
         <button class="tab-btn" onclick="switchTab('page3')">३. कर्मचाऱ्यांची माहिती</button>
     </div>
 
-    <!-- विभाग १: रजा नोंदणी पुस्तिका -->
     <div id="page1" class="tab-content active">
         <div class="setup-box" id="initialSetup">
             <div>
                 <label>मागील रजा संपल्याचा दिनांक (P3):</label>
-                <input type="date" id="p3_date" onchange="setFirstStartDate()">
+                <input type="text" id="p3_date" placeholder="DD/MM/YYYY">
             </div>
             <div>
                 <label>सुरुवातीची शिल्लक EL (Z3):</label>
@@ -79,11 +71,11 @@
         </div>
 
         <div class="entry-box">
-            <div><label>सुरवातीचा हजर दिनांक (A):</label><input type="date" id="a_start" readonly></div>
-            <div><label>शेवटचा हजर दिनांक (B):</label><input type="date" id="b_end" onchange="updateLeaveStartDate()"></div>
+            <div><label>सुरवातीचा हजर दिनांक (A):</label><input type="text" id="a_start" placeholder="DD/MM/YYYY" readonly></div>
+            <div><label>शेवटचा हजर दिनांक (B):</label><input type="text" id="b_end" placeholder="DD/MM/YYYY"></div>
             <div><label>बिन पगारी रजा LWP (E):</label><input type="number" id="e_lwp" value="0"></div>
-            <div><label>रजेवर गेल्याचा दिनांक (O):</label><input type="date" id="o_leave_start" readonly></div>
-            <div><label>रजा संपल्याचा दिनांक (P):</label><input type="date" id="p_leave_end"></div>
+            <div><label>रजेवर गेल्याचा दिनांक (O):</label><input type="text" id="o_leave_start" placeholder="DD/MM/YYYY" readonly></div>
+            <div><label>रजा संपल्याचा दिनांक (P):</label><input type="text" id="p_leave_end" placeholder="DD/MM/YYYY"></div>
             <div>
                 <label>रजेचा प्रकार (Q):</label>
                 <select id="q_type">
@@ -120,7 +112,6 @@
         </table>
     </div>
 
-    <!-- विभाग २: निवृत्ती रजा वेतन गणना -->
     <div id="page2" class="tab-content">
         <h3>सेवानिवृत्ती रजा रोखीकरण गणना (Leave Encashment Calculator)</h3>
         <div class="encash-box">
@@ -147,7 +138,6 @@
         </div>
     </div>
 
-    <!-- विभाग ३: कर्मचाऱ्यांची माहिती -->
     <div id="page3" class="tab-content">
         <h3>कर्मचाऱ्यांची वैयक्तिक व सेवा माहिती (Employee Service Info)</h3>
         <div class="info-box">
@@ -169,11 +159,11 @@
             </div>
             <div>
                 <label>नोकरीत रुजू झाल्याचा दिनांक:</label>
-                <input type="date" id="info_join_date">
+                <input type="text" id="info_join_date" placeholder="DD/MM/YYYY">
             </div>
             <div>
                 <label>संभाव्य सेवानिवृत्ती दिनांक:</label>
-                <input type="date" id="info_retire_date">
+                <input type="text" id="info_retire_date" placeholder="DD/MM/YYYY">
             </div>
         </div>
         <div class="result-card" style="border-color: #e91e63; color: #c2185b; background: #fff;">
@@ -181,18 +171,45 @@
         </div>
     </div>
 
-    <!-- सूचना संदेश -->
     <div class="footer-msg">
-        सदर software बद्दल आपल्या काही सूचना किंवा दुरुस्ती असल्यास हनुमंत आडागळे मोबाईल 9922987391 यावर whatsapp message करा. धन्यवाद!
+        Sadar software baddal aaplya kahi suchna kiva durusti aslyas Hanumant Adagale Mobile 9922987391 yavar whatsapp message kara. Dhanyavad!
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
     let history = []; 
     let isFirstEntry = true;
     let initialValues = {};
 
-    // टॅब बदलण्याचे फंक्शन
+    // कॅलेंडर इनिशियलाइज करणे (Strict DD/MM/YYYY फॉरमॅट)
+    const config = {
+        dateFormat: "d/m/Y",
+        allowInput: true
+    };
+    
+    const p3Pick = flatpickr("#p3_date", { ...config, onChange: setFirstStartDate });
+    const bPick = flatpickr("#b_end", { ...config, onChange: updateLeaveStartDate });
+    const pLeavePick = flatpickr("#p_leave_end", config);
+    flatpickr("#info_join_date", config);
+    flatpickr("#info_retire_date", config);
+
+    // स्ट्रिंग मधून Date ऑब्जेक्ट बनवणारे फंक्शन (DD/MM/YYYY साठी)
+    function parseDMY(str) {
+        if(!str) return null;
+        let parts = str.split("/");
+        return new Date(parts[2], parts[1] - 1, parts[0]);
+    }
+
+    // Date ऑब्जेक्ट ला DD/MM/YYYY स्ट्रिंग मध्ये बदलणे
+    function formatDMY(dateObj) {
+        if(!dateObj || isNaN(dateObj.getTime())) return "";
+        let day = String(dateObj.getDate()).padStart(2, '0');
+        let month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        let year = dateObj.getFullYear();
+        return `${day}/${month}/${year}`;
+    }
+
     function switchTab(tabId) {
         document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
@@ -207,24 +224,14 @@
         }
     }
 
-    // तारीख DD/MM/YYYY फॉरमॅटमध्ये रूपांतरित करणारे फंक्शन
-    function formatDateToDDMMYYYY(dateString) {
-        if (!dateString) return "";
-        let dateObj = new Date(dateString);
-        let day = String(dateObj.getDate()).padStart(2, '0');
-        let month = String(dateObj.getMonth() + 1).padStart(2, '0');
-        let year = dateObj.getFullYear();
-        return `${day}/${month}/${year}`;
-    }
-
     function setFirstStartDate() {
         if(isFirstEntry) {
             let p3Val = document.getElementById('p3_date').value;
             if(p3Val) {
-                let p3 = new Date(p3Val);
-                let nextA = new Date(p3);
+                let p3Date = parseDMY(p3Val);
+                let nextA = new Date(p3Date);
                 nextA.setDate(nextA.getDate() + 1);
-                document.getElementById('a_start').value = nextA.toISOString().split('T')[0];
+                document.getElementById('a_start').value = formatDMY(nextA);
             }
         }
     }
@@ -232,10 +239,10 @@
     function updateLeaveStartDate() {
         let bVal = document.getElementById('b_end').value;
         if(bVal) {
-            let bDate = new Date(bVal);
+            let bDate = parseDMY(bVal);
             let oDate = new Date(bDate);
             oDate.setDate(oDate.getDate() + 1);
-            document.getElementById('o_leave_start').value = oDate.toISOString().split('T')[0];
+            document.getElementById('o_leave_start').value = formatDMY(oDate);
         }
     }
 
@@ -270,7 +277,12 @@
         let curEL = history.length > 0 ? history[history.length-1].finalEL : initialValues.el;
         let curML = history.length > 0 ? history[history.length-1].finalML : initialValues.ml;
 
-        let f = (Math.ceil(Math.abs(new Date(b) - new Date(a)) / (1000 * 60 * 60 * 24)) + 1) - e;
+        let dateA = parseDMY(a);
+        let dateB = parseDMY(b);
+        let dateO = parseDMY(o);
+        let dateP = parseDMY(p);
+
+        let f = (Math.ceil(Math.abs(dateB - dateA) / (1000 * 60 * 60 * 24)) + 1) - e;
         let g = Math.floor(f / 11) + (f % 11) / 100;
         let h = Math.floor(f / 30) + (f % 30) / 100;
 
@@ -282,7 +294,7 @@
         let h_int = Math.floor(h), h_mod = Math.round((h % 1) * 100);
         let l_val = applyLimits(aa3_int + h_int + Math.floor((aa3_mod + h_mod)/30) + ((aa3_mod + h_mod)%30)/100, 120);
 
-        let r_diff = Math.ceil(Math.abs(new Date(p) - new Date(o)) / (1000 * 60 * 60 * 24)) + 1;
+        let r_diff = Math.ceil(Math.abs(dateP - dateO) / (1000 * 60 * 60 * 24)) + 1;
 
         let finalEL, finalML;
         if (q === "हक्काची रजा") {
@@ -299,9 +311,10 @@
         history.push({ a, b, f, g, h, k_val, l_val, o, p, q, r_diff, finalEL, finalML });
         renderTable();
         
-        let nextA = new Date(p); nextA.setDate(nextA.getDate() + 1);
-        document.getElementById('a_start').value = nextA.toISOString().split('T')[0];
-        document.getElementById('b_end').value = ""; document.getElementById('o_leave_start').value = ""; document.getElementById('p_leave_end').value = "";
+        let nextA = new Date(dateP); nextA.setDate(nextA.getDate() + 1);
+        document.getElementById('a_start').value = formatDMY(nextA);
+        bPick.clear(); pLeavePick.clear();
+        document.getElementById('o_leave_start').value = "";
         document.getElementById('deleteBtn').style.display = "inline-block";
     }
 
@@ -312,37 +325,36 @@
             renderTable();
             if (history.length === 0) {
                 isFirstEntry = true;
-                document.getElementById('p3_date').disabled = false;
+                document.getElementById('p3_date').disabled = false; p3Pick.clear();
                 document.getElementById('z3_bal').disabled = false;
                 document.getElementById('aa3_bal').disabled = false;
-                setFirstStartDate();
+                document.getElementById('a_start').value = "";
                 document.getElementById('deleteBtn').style.display = "none";
             } else {
                 let lastP = history[history.length-1].p;
-                let nextA = new Date(lastP); nextA.setDate(nextA.getDate() + 1);
-                document.getElementById('a_start').value = nextA.toISOString().split('T')[0];
+                let dateLastP = parseDMY(lastP);
+                let nextA = new Date(dateLastP); nextA.setDate(nextA.getDate() + 1);
+                document.getElementById('a_start').value = formatDMY(nextA);
             }
         }
     }
 
-    // तक्त्यामध्ये DD/MM/YYYY फॉरमॅटमध्ये तारखा दाखवणे
     function renderTable() {
         let tbody = document.querySelector("#recordTable tbody");
         tbody.innerHTML = "";
         history.forEach(item => {
             let row = tbody.insertRow();
             row.innerHTML = `
-                <td>${formatDateToDDMMYYYY(item.a)} - ${formatDateToDDMMYYYY(item.b)}</td>
+                <td>${item.a} - ${item.b}</td>
                 <td>${item.f}</td><td>${item.g.toFixed(2)}</td><td>${item.h.toFixed(2)}</td>
                 <td class="accumulated">${item.k_val.toFixed(2)}</td><td class="accumulated">${item.l_val.toFixed(2)}</td>
-                <td>${formatDateToDDMMYYYY(item.o)} - ${formatDateToDDMMYYYY(item.p)}</td>
+                <td>${item.o} - ${item.p}</td>
                 <td>${item.q}</td><td>${item.r_diff}</td>
                 <td class="highlight">${item.finalEL.toFixed(2)}</td><td class="highlight">${item.finalML.toFixed(2)}</td>
             `;
         });
     }
 
-    // Excel मध्ये सुद्धा DD/MM/YYYY फॉरमॅट सेट केला आहे
     function downloadExcel() {
         if (history.length === 0) { alert("डाउनलोड करण्यासाठी कोणतीही नोंद उपलब्ध नाही!"); return; }
         let csvContent = "\uFEFF"; 
@@ -350,9 +362,9 @@
         csvContent += headers.join(",") + "\n";
         history.forEach(item => {
             let row = [
-                `"${formatDateToDDMMYYYY(item.a)} - ${formatDateToDDMMYYYY(item.b)}"`,
+                `"${item.a} - ${item.b}"`,
                 item.f, item.g.toFixed(2), item.h.toFixed(2), item.k_val.toFixed(2), item.l_val.toFixed(2),
-                `"${formatDateToDDMMYYYY(item.o)} - ${formatDateToDDMMYYYY(item.p)}"`,
+                `"${item.o} - ${item.p}"`,
                 `"${item.q}"`, item.r_diff, item.finalEL.toFixed(2), item.finalML.toFixed(2)
             ];
             csvContent += row.join(",") + "\n";
