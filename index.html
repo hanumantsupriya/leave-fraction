@@ -24,13 +24,15 @@
         input, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 14px; background-color: #fff; }
         input:disabled, input[readonly] { background-color: #eee; color: #555; }
         
-        .btn-group { display: flex; gap: 10px; margin-top: 18px; }
-        .btn-add { background-color: #1a73e8; color: white; padding: 12px; border: none; border-radius: 5px; cursor: pointer; flex: 2; font-size: 16px; font-weight: bold; }
-        .btn-excel { background-color: #2e7d32; color: white; padding: 12px; border: none; border-radius: 5px; cursor: pointer; flex: 1.5; font-size: 16px; font-weight: bold; }
-        .btn-delete { background-color: #d32f2f; color: white; padding: 12px; border: none; border-radius: 5px; cursor: pointer; flex: 1; font-size: 14px; font-weight: bold; }
+        .btn-group { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+        .btn-add { background-color: #1a73e8; color: white; padding: 12px; border: none; border-radius: 5px; cursor: pointer; flex: 2; font-size: 16px; font-weight: bold; min-width: 150px; }
+        .btn-excel { background-color: #2e7d32; color: white; padding: 12px; border: none; border-radius: 5px; cursor: pointer; flex: 1.5; font-size: 16px; font-weight: bold; min-width: 150px; }
+        .btn-delete { background-color: #d32f2f; color: white; padding: 12px; border: none; border-radius: 5px; cursor: pointer; flex: 1; font-size: 14px; font-weight: bold; min-width: 120px; }
+        .btn-clear { background-color: #555555; color: white; padding: 12px; border: none; border-radius: 5px; cursor: pointer; flex: 1; font-size: 14px; font-weight: bold; min-width: 120px; }
         .btn-add:hover { background-color: #1557b0; }
         .btn-excel:hover { background-color: #1b5e20; }
         .btn-delete:hover { background-color: #b71c1c; }
+        .btn-clear:hover { background-color: #333333; }
         
         table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 11px; }
         th, td { border: 1px solid #ddd; padding: 6px; text-align: center; }
@@ -88,6 +90,7 @@
                 <button class="btn-add" onclick="addEntry()">जतन करा (Save Entry)</button>
                 <button class="btn-excel" onclick="downloadExcel()">Excel डाउनलोड करा</button>
                 <button class="btn-delete" id="deleteBtn" onclick="deleteLastEntry()" style="display:none;">शेवटची नोंद हटवा</button>
+                <button class="btn-clear" onclick="clearAllData()">सर्व डेटा पुसा</button>
             </div>
         </div>
 
@@ -143,19 +146,19 @@
         <div class="info-box">
             <div>
                 <label>कर्मचाऱ्याचे पूर्ण नाव:</label>
-                <input type="text" id="info_name" placeholder="उदा. हनुमंत रामचन्द्र आडागळे">
+                <input type="text" id="info_name" placeholder="उदा. हनुमंत रामचन्द्र आडागळे" oninput="saveEmployeeInfo()">
             </div>
             <div>
                 <label>पदनाम (Designation):</label>
-                <input type="text" id="info_desig" placeholder="उदा. वरिष्ठ लिपिक">
+                <input type="text" id="info_desig" placeholder="उदा. वरिष्ठ लिपिक" oninput="saveEmployeeInfo()">
             </div>
             <div>
                 <label>खाते / कार्यालय विभाग:</label>
-                <input type="text" id="info_dept" placeholder="उदा. मुख्य खाते व वित्त विभाग">
+                <input type="text" id="info_dept" placeholder="उदा. मुख्य खाते व वित्त विभाग" oninput="saveEmployeeInfo()">
             </div>
             <div>
                 <label>कर्मचारी कोड / PF नंबर:</label>
-                <input type="text" id="info_pf" placeholder="उदा. PMC-9922">
+                <input type="text" id="info_pf" placeholder="उदा. PMC-9922" oninput="saveEmployeeInfo()">
             </div>
             <div>
                 <label>नोकरीत रुजू झाल्याचा दिनांक:</label>
@@ -182,7 +185,6 @@
     let isFirstEntry = true;
     let initialValues = {};
 
-    // कॅलेंडर इनिशियलाइज करणे (Strict DD/MM/YYYY फॉरमॅट)
     const config = {
         dateFormat: "d/m/Y",
         allowInput: true
@@ -191,17 +193,60 @@
     const p3Pick = flatpickr("#p3_date", { ...config, onChange: setFirstStartDate });
     const bPick = flatpickr("#b_end", { ...config, onChange: updateLeaveStartDate });
     const pLeavePick = flatpickr("#p_leave_end", config);
-    flatpickr("#info_join_date", config);
-    flatpickr("#info_retire_date", config);
+    const joinPick = flatpickr("#info_join_date", { ...config, onChange: saveEmployeeInfo });
+    const retirePick = flatpickr("#info_retire_date", { ...config, onChange: saveEmployeeInfo });
 
-    // स्ट्रिंग मधून Date ऑब्जेक्ट बनवणारे फंक्शन (DD/MM/YYYY साठी)
+    // पेज लोड झाल्यावर डेटा रिकव्हर करणे
+    window.onload = function() {
+        if(localStorage.getItem("pmc_leave_history")) {
+            history = JSON.parse(localStorage.getItem("pmc_leave_history"));
+            isFirstEntry = false;
+            initialValues = JSON.parse(localStorage.getItem("pmc_initial_values"));
+            
+            // इनपुट बॉक्स लॉक करणे
+            document.getElementById('p3_date').value = initialValues.p3;
+            document.getElementById('p3_date').disabled = true;
+            document.getElementById('z3_bal').value = initialValues.el;
+            document.getElementById('z3_bal').disabled = true;
+            document.getElementById('aa3_bal').value = initialValues.ml;
+            document.getElementById('aa3_bal').disabled = true;
+            
+            // पुढची सुरुवातीची तारीख सेट करणे
+            let lastRecord = history[history.length - 1];
+            let dateLastP = parseDMY(lastRecord.p);
+            let nextA = new Date(dateLastP); nextA.setDate(nextA.getDate() + 1);
+            document.getElementById('a_start').value = formatDMY(nextA);
+            
+            document.getElementById('deleteBtn').style.display = "inline-block";
+            renderTable();
+        }
+        
+        // कर्मचाऱ्यांची माहिती रिकव्हर करणे
+        if(localStorage.getItem("pmc_emp_info")) {
+            let emp = JSON.parse(localStorage.getItem("pmc_emp_info"));
+            document.getElementById('info_name').value = emp.name || "";
+            document.getElementById('info_desig').value = emp.desig || "";
+            document.getElementById('info_dept').value = emp.dept || "";
+            document.getElementById('info_pf').value = emp.pf || "";
+            if(emp.joinDate) joinPick.setDate(emp.joinDate);
+            if(emp.retireDate) retirePick.setDate(emp.retireDate);
+        }
+        
+        // कॅल्क्युलेटर डेटा रिकव्हर करणे
+        if(localStorage.getItem("pmc_calc_pay")) {
+            let calc = JSON.parse(localStorage.getItem("pmc_calc_pay"));
+            document.getElementById('basic_pay').value = calc.basic || "";
+            document.getElementById('da_amount').value = calc.da || "";
+            calculateEncashment();
+        }
+    };
+
     function parseDMY(str) {
         if(!str) return null;
         let parts = str.split("/");
         return new Date(parts[2], parts[1] - 1, parts[0]);
     }
 
-    // Date ऑब्जेक्ट ला DD/MM/YYYY स्ट्रिंग मध्ये बदलणे
     function formatDMY(dateObj) {
         if(!dateObj || isNaN(dateObj.getTime())) return "";
         let day = String(dateObj.getDate()).padStart(2, '0');
@@ -271,16 +316,15 @@
             document.getElementById('p3_date').disabled = true;
             document.getElementById('z3_bal').disabled = true;
             document.getElementById('aa3_bal').disabled = true;
+            localStorage.setItem("pmc_initial_values", JSON.stringify(initialValues));
             isFirstEntry = false;
         }
 
         let curEL = history.length > 0 ? history[history.length-1].finalEL : initialValues.el;
         let curML = history.length > 0 ? history[history.length-1].finalML : initialValues.ml;
 
-        let dateA = parseDMY(a);
-        let dateB = parseDMY(b);
-        let dateO = parseDMY(o);
-        let dateP = parseDMY(p);
+        let dateA = parseDMY(a); let dateB = parseDMY(b);
+        let dateO = parseDMY(o); let dateP = parseDMY(p);
 
         let f = (Math.ceil(Math.abs(dateB - dateA) / (1000 * 60 * 60 * 24)) + 1) - e;
         let g = Math.floor(f / 11) + (f % 11) / 100;
@@ -305,10 +349,13 @@
             finalML = (r_diff >= Math.floor(l_val)) ? (l_val % 1) : (Math.floor(l_val) - r_diff + (l_val % 1));
         } else { finalEL = k_val; finalML = l_val; }
 
-        finalEL = applyLimits(finalEL, 365);
-        finalML = applyLimits(finalML, 120);
+        finalEL = applyLimits(finalEL, 365); finalML = applyLimits(finalML, 120);
 
         history.push({ a, b, f, g, h, k_val, l_val, o, p, q, r_diff, finalEL, finalML });
+        
+        // लोकल स्टोरेज मध्ये सेव्ह करणे
+        localStorage.setItem("pmc_leave_history", JSON.stringify(history));
+        
         renderTable();
         
         let nextA = new Date(dateP); nextA.setDate(nextA.getDate() + 1);
@@ -322,21 +369,44 @@
         if (history.length === 0) return;
         if (confirm("तुम्हाला खात्री आहे की शेवटची नोंद हटवायची आहे?")) {
             history.pop();
-            renderTable();
             if (history.length === 0) {
                 isFirstEntry = true;
+                localStorage.removeItem("pmc_leave_history");
+                localStorage.removeItem("pmc_initial_values");
                 document.getElementById('p3_date').disabled = false; p3Pick.clear();
-                document.getElementById('z3_bal').disabled = false;
-                document.getElementById('aa3_bal').disabled = false;
+                document.getElementById('z3_bal').disabled = false; document.getElementById('z3_bal').value="";
+                document.getElementById('aa3_bal').disabled = false; document.getElementById('aa3_bal').value="";
                 document.getElementById('a_start').value = "";
                 document.getElementById('deleteBtn').style.display = "none";
             } else {
+                localStorage.setItem("pmc_leave_history", JSON.stringify(history));
                 let lastP = history[history.length-1].p;
                 let dateLastP = parseDMY(lastP);
                 let nextA = new Date(dateLastP); nextA.setDate(nextA.getDate() + 1);
                 document.getElementById('a_start').value = formatDMY(nextA);
             }
+            renderTable();
         }
+    }
+
+    // सर्व डेटा पुसून सिस्टीम नवीन करणे
+    function clearAllData() {
+        if (confirm("चेतावणी! यामुळे तुमची सर्व माहिती आणि नोंदी कायमच्या डिलीट होतील. तुम्हाला खात्री आहे का?")) {
+            localStorage.clear();
+            location.reload(); 
+        }
+    }
+
+    function saveEmployeeInfo() {
+        let emp = {
+            name: document.getElementById('info_name').value,
+            desig: document.getElementById('info_desig').value,
+            dept: document.getElementById('info_dept').value,
+            pf: document.getElementById('info_pf').value,
+            joinDate: document.getElementById('info_join_date').value,
+            retireDate: document.getElementById('info_retire_date').value
+        };
+        localStorage.setItem("pmc_emp_info", JSON.stringify(emp));
     }
 
     function renderTable() {
@@ -362,10 +432,8 @@
         csvContent += headers.join(",") + "\n";
         history.forEach(item => {
             let row = [
-                `"${item.a} - ${item.b}"`,
-                item.f, item.g.toFixed(2), item.h.toFixed(2), item.k_val.toFixed(2), item.l_val.toFixed(2),
-                `"${item.o} - ${item.p}"`,
-                `"${item.q}"`, item.r_diff, item.finalEL.toFixed(2), item.finalML.toFixed(2)
+                `"${item.a} - ${item.b}"`, item.f, item.g.toFixed(2), item.h.toFixed(2), item.k_val.toFixed(2), item.l_val.toFixed(2),
+                `"${item.o} - ${item.p}"`, `"${item.q}"`, item.r_diff, item.finalEL.toFixed(2), item.finalML.toFixed(2)
             ];
             csvContent += row.join(",") + "\n";
         });
@@ -380,6 +448,8 @@
         let basic = parseFloat(document.getElementById('basic_pay').value) || 0;
         let da = parseFloat(document.getElementById('da_amount').value) || 0;
         let elDays = parseFloat(document.getElementById('total_el_shilak').value) || 0;
+
+        localStorage.setItem("pmc_calc_pay", JSON.stringify({basic, da}));
 
         let validDays = elDays > 300 ? 300 : elDays;
         let oneDaySalary = (basic + da) / 30;
