@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f7f6; padding: 20px; }
-        .container { max-width: 1350px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .container { max-width: 1450px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         h2 { text-align: center; color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 10px; margin-bottom: 20px; }
         
         .tab-bar { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
@@ -16,7 +16,7 @@
         .tab-content.active { display: block; }
 
         .setup-box { background: #e3f2fd; padding: 15px; border-radius: 8px; border: 1px solid #bbdefb; margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
-        .entry-box { background: #fffde7; padding: 15px; border-radius: 8px; border: 1px solid #fbc02d; margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; }
+        .entry-box { background: #fffde7; padding: 15px; border-radius: 8px; border: 1px solid #fbc02d; margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; }
         .encash-box { background: #e8f5e9; padding: 20px; border-radius: 8px; border: 1px solid #a5d6a7; margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
         .info-box { background: #fce4ec; padding: 20px; border-radius: 8px; border: 1px solid #f8bbd0; margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
         
@@ -25,8 +25,9 @@
         input:disabled, input[readonly] { background-color: #eee; color: #555; }
         
         .btn-group { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
-        .btn-add { background-color: #1a73e8; color: white; padding: 12px; border: none; border-radius: 5px; cursor: pointer; flex: 2; font-size: 16px; font-weight: bold; min-width: 150px; }
-        .btn-excel { background-color: #2e7d32; color: white; padding: 12px; border: none; border-radius: 5px; cursor: pointer; flex: 1.5; font-size: 16px; font-weight: bold; min-width: 150px; }
+        .btn-add { background-color: #1a73e8; color: white; padding: 12px; border: none; border-radius: 5px; cursor: pointer; flex: 2; font-size: 16px; font-weight: bold; min-width: 140px; }
+        .btn-pagebreak { background-color: #0288d1; color: white; padding: 12px; border: none; border-radius: 5px; cursor: pointer; flex: 1.5; font-size: 15px; font-weight: bold; min-width: 150px; }
+        .btn-excel { background-color: #2e7d32; color: white; padding: 12px; border: none; border-radius: 5px; cursor: pointer; flex: 1.5; font-size: 16px; font-weight: bold; min-width: 140px; }
         .btn-delete { background-color: #d32f2f; color: white; padding: 12px; border: none; border-radius: 5px; cursor: pointer; flex: 1; font-size: 14px; font-weight: bold; min-width: 120px; }
         .btn-clear { background-color: #555555; color: white; padding: 12px; border: none; border-radius: 5px; cursor: pointer; flex: 1; font-size: 14px; font-weight: bold; min-width: 120px; }
         
@@ -35,7 +36,6 @@
         th { background-color: #1a73e8; color: white; }
         tr:nth-child(even) { background-color: #f9f9f9; }
         
-        /* विशेष पेज ब्रेक स्टाईल */
         .page-break-row { background-color: #0d47a1 !important; color: white; font-weight: bold; font-size: 12px; }
         .summary-header { background-color: #2e7d32; color: white; }
         .grand-total-row { background-color: #c8e6c9; font-weight: bold; font-size: 13px; color: #1b5e20; }
@@ -44,6 +44,7 @@
         .accumulated { color: #2e7d32; font-weight: bold; background: #f1f8e9; }
         .result-card { background: #ffffff; padding: 15px; border: 2px dashed #2e7d32; border-radius: 8px; margin-top: 20px; text-align: center; font-size: 18px; font-weight: bold; color: #1b5e20; }
         .footer-msg { margin-top: 30px; padding: 15px; background-color: #eeeeee; border-radius: 8px; text-align: center; font-size: 14px; color: #333; border: 1px solid #ccc; }
+        .tfoot-break-btn-box { text-align: center; margin-top: 15px; }
     </style>
 </head>
 <body>
@@ -89,19 +90,20 @@
             </div>
             <div class="btn-group">
                 <button class="btn-add" onclick="addEntry()">जतन करा (Save Entry)</button>
+                <button class="btn-pagebreak" onclick="manualPageBreak()">🛑 पेज ब्रेक करा (Manual Break)</button>
                 <button class="btn-excel" onclick="downloadExcel()">Excel डाउनलोड करा</button>
                 <button class="btn-delete" id="deleteBtn" style="display:none;" onclick="deleteLastEntry()">शेवटची नोंद हटवा</button>
                 <button class="btn-clear" onclick="clearAllData()">सर्व डेटा पुसा</button>
             </div>
         </div>
 
-        <h3>नोंदींचा तक्ता (Leave Record Table - पानाव्यवस्था सह)</h3>
+        <h3>नोंदींचा तक्ता (Leave Record Table)</h3>
         <table id="recordTable">
             <thead>
                 <tr>
                     <th>हजर दिनांक (A-B)</th>
                     <th>हजर दिवस (F)</th>
-                    <th>साठलेली EL (G)</th>
+                    <th>बिन पगारी रजा LWP (E)</th> <th>साठलेली EL (G)</th>
                     <th>साठलेली ML (H)</th>
                     <th>एकूण साठलेली EL (K)</th>
                     <th>एकूण साठलेली ML (L)</th>
@@ -115,15 +117,21 @@
             <tbody></tbody>
         </table>
 
+        <div class="tfoot-break-btn-box">
+            <button class="btn-pagebreak" style="background-color: #0d47a1; padding: 10px 30px;" onclick="manualPageBreak()">🛑 तक्त्याच्या शेवटी येथून पेज ब्रेक करा (Manual Page Break)</button>
+        </div>
+
         <br><br>
-        <h3>४. प्रत्येक पानाचा स्वतंत्र एकत्रित चार्ट (Page-wise Grand Summary Chart)</h3>
+        <h3>४. प्रत्येक मॅन्युअल पानाचा स्वतंत्र चार्ट (Page-wise Grand Summary Chart)</h3>
         <table id="summaryChartTable">
             <thead>
                 <tr class="summary-header">
                     <th>पान नंबर (Page No)</th>
                     <th>एकूण हजर दिवस (Total F)</th>
-                    <th>एकूण साठलेली EL (Total G)</th>
+                    <th>एकूण LWP (Total E)</th> <th>एकूण साठलेली EL (Total G)</th>
                     <th>एकूण साठलेली ML (Total H)</th>
+                    <th>अंतिम शिल्लक EL (Z)</th>
+                    <th>अंतिम शिल्लक ML (AA)</th>
                     <th>एकूण गैरहजर रजा दिवस (Total R)</th>
                 </tr>
             </thead>
@@ -134,20 +142,11 @@
     <div id="page2" class="tab-content">
         <h3>सेवानिवृत्ती रजा रोखीकरण गणना (Leave Encashment Calculator)</h3>
         <div class="encash-box">
-            <div>
-                <label>मूळ वेतन (Basic Pay - रु.):</label>
-                <input type="number" id="basic_pay" placeholder="उदा. 56100" oninput="calculateEncashment()">
-            </div>
-            <div>
-                <label>महागाई भत्ता (DA - रु.):</label>
-                <input type="number" id="da_amount" placeholder="उदा. 28050" oninput="calculateEncashment()">
-            </div>
-            <div>
-                <label>एकूण शिल्लक हक्काची रजा (Total EL):</label>
-                <input type="number" id="total_el_shilak" placeholder="नोंदींमधून आपोआप येईल" oninput="calculateEncashment()">
-            </div>
+            <div><label>मूळ वेतन (Basic Pay - रु.):</label><input type="number" id="basic_pay" placeholder="उदा. 56100" oninput="calculateEncashment()"></div>
+            <div><label>महागाई भत्ता (DA - रु.):</label><input type="number" id="da_amount" placeholder="उदा. 28050" oninput="calculateEncashment()"></div>
+            <div><label>एकूण शिल्लक हक्काची रजा (Total EL):</label><input type="number" id="total_el_shilak" placeholder="नोंदींमधून आपोआप येईल" oninput="calculateEncashment()"></div>
         </div>
-        <div class="result-card" id="encashmentResult">माहिती भरा, रजा वेतन रक्कम येथे दिसेल.</div>
+        <div class="result-card" id="encashmentResult">माहिती भरा, रक्कम येथे दिसेल.</div>
         <div style="margin-top: 15px; text-align: right;">
             <button class="btn-excel" style="width: auto; padding: 10px 25px;" onclick="downloadEncashmentExcel()">निवृत्ती रजा हिशोब Excel डाउनलोड करा</button>
         </div>
@@ -156,7 +155,7 @@
     <div id="page3" class="tab-content">
         <h3>कर्मचाऱ्यांची वैयक्तिक व सेवा माहिती (Employee Service Info)</h3>
         <div class="info-box">
-            <div><label>कर्मचाऱ्याचे पूर्ण नाव:</label><input type="text" id="info_name" placeholder="उदा. हनुमंत रामचन्द्र आडागळे" oninput="saveEmployeeInfo()"></div>
+            <div><label>कर्मचाऱ्याचे पूर्ण नाव:</label><input type="text" id="info_name" placeholder="उदा. हनुमंत आडागळे" oninput="saveEmployeeInfo()"></div>
             <div><label>पदनाम (Designation):</label><input type="text" id="info_desig" placeholder="उदा. वरिष्ठ लिपिक" oninput="saveEmployeeInfo()"></div>
             <div><label>खाते / कार्यालय विभाग:</label><input type="text" id="info_dept" placeholder="उदा. मुख्य खाते व वित्त विभाग" oninput="saveEmployeeInfo()"></div>
             <div><label>कर्मचारी कोड / PF नंबर:</label><input type="text" id="info_pf" placeholder="उदा. PMC-9922" oninput="saveEmployeeInfo()"></div>
@@ -173,9 +172,9 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
     let history = []; 
+    let pageBreaks = []; 
     let isFirstEntry = true;
     let initialValues = {};
-    const LINES_PER_PAGE = 15; // प्रत्येक पानावरील ओळींची कमाल संख्या
 
     const config = { dateFormat: "d/m/Y", allowInput: true };
     const p3Pick = flatpickr("#p3_date", { ...config, onChange: setFirstStartDate });
@@ -189,6 +188,9 @@
             history = JSON.parse(localStorage.getItem("pmc_leave_history"));
             isFirstEntry = false;
             initialValues = JSON.parse(localStorage.getItem("pmc_initial_values"));
+            if(localStorage.getItem("pmc_page_breaks")) {
+                pageBreaks = JSON.parse(localStorage.getItem("pmc_page_breaks"));
+            }
             
             document.getElementById('p3_date').value = initialValues.p3;
             document.getElementById('p3_date').disabled = true;
@@ -272,11 +274,7 @@
         if (!a || !b || !p) { alert("कृपया सर्व तारखा भरा!"); return; }
 
         if (isFirstEntry) {
-            initialValues = {
-                el: parseFloat(document.getElementById('z3_bal').value) || 0,
-                ml: parseFloat(document.getElementById('aa3_bal').value) || 0,
-                p3: document.getElementById('p3_date').value
-            };
+            initialValues = { el: parseFloat(document.getElementById('z3_bal').value) || 0, ml: parseFloat(document.getElementById('aa3_bal').value) || 0, p3: document.getElementById('p3_date').value };
             localStorage.setItem("pmc_initial_values", JSON.stringify(initialValues));
             document.getElementById('p3_date').disabled = true;
             document.getElementById('z3_bal').disabled = true;
@@ -299,155 +297,4 @@
         let h_int = Math.floor(h), h_mod = Math.round((h % 1) * 100);
         let l_val = applyLimits(aa3_int + h_int + Math.floor((aa3_mod + h_mod)/30) + ((aa3_mod + h_mod)%30)/100, 120);
 
-        let r_diff = Math.ceil(Math.abs(parseDMY(p) - parseDMY(o)) / (1000 * 60 * 60 * 24)) + 1;
-
-        let finalEL, finalML;
-        if (q === "हक्काची रजा") {
-            finalEL = (r_diff >= Math.floor(k_val)) ? (k_val % 1) : (Math.floor(k_val) - r_diff + (k_val % 1));
-            finalML = l_val;
-        } else if (q === "वैद्यकीय रजा") {
-            finalEL = applyLimits(Math.max(0, Math.floor(k_val) - Math.max(0, r_diff - Math.floor(l_val)) + (k_val % 1)), 365);
-            finalML = (r_diff >= Math.floor(l_val)) ? (l_val % 1) : (Math.floor(l_val) - r_diff + (l_val % 1));
-        } else { finalEL = k_val; finalML = l_val; }
-
-        finalEL = applyLimits(finalEL, 365); finalML = applyLimits(finalML, 120);
-
-        history.push({ a, b, f, g, h, k_val, l_val, o, p, q, r_diff, finalEL, finalML });
-        localStorage.setItem("pmc_leave_history", JSON.stringify(history));
-        
-        renderTable();
-        document.getElementById('a_start').value = formatDMY(nextDay(parseDMY(p)));
-        bPick.clear(); pLeavePick.clear();
-        document.getElementById('o_leave_start').value = "";
-        document.getElementById('deleteBtn').style.display = "inline-block";
-    }
-
-    function deleteLastEntry() {
-        if (history.length === 0) return;
-        if (confirm("शेवटची नोंद हटवायची का?")) {
-            history.pop();
-            if (history.length === 0) {
-                isFirstEntry = true;
-                localStorage.clear();
-                location.reload();
-            } else {
-                localStorage.setItem("pmc_leave_history", JSON.stringify(history));
-                document.getElementById('a_start').value = formatDMY(nextDay(parseDMY(history[history.length-1].p)));
-                renderTable();
-            }
-        }
-    }
-
-    function clearAllData() {
-        if (confirm("सर्व डेटा कायमचा डिलीट होईल. खात्री आहे का?")) { localStorage.clear(); location.reload(); }
-    }
-
-    function saveEmployeeInfo() {
-        localStorage.setItem("pmc_emp_info", JSON.stringify({
-            name: document.getElementById('info_name').value, desig: document.getElementById('info_desig').value,
-            dept: document.getElementById('info_dept').value, pf: document.getElementById('info_pf').value,
-            joinDate: document.getElementById('info_join_date').value, retireDate: document.getElementById('info_retire_date').value
-        }));
-    }
-
-    // मुख्य तक्ता आणि चार्ट रेंडर करणे
-    function renderTable() {
-        let tbody = document.querySelector("#recordTable tbody");
-        let chartBody = document.querySelector("#summaryChartTable tbody");
-        tbody.innerHTML = "";
-        chartBody.innerHTML = "";
-
-        let pageNum = 1;
-        let pgF = 0, pgG = 0, pgH = 0, pgR = 0;
-        let grandF = 0, grandG = 0, grandH = 0, grandR = 0;
-
-        history.forEach((item, index) => {
-            let row = tbody.insertRow();
-            row.innerHTML = `
-                <td>${item.a} - ${item.b}</td><td>${item.f}</td><td>${item.g.toFixed(2)}</td><td>${item.h.toFixed(2)}</td>
-                <td class="accumulated">${item.k_val.toFixed(2)}</td><td class="accumulated">${item.l_val.toFixed(2)}</td>
-                <td>${item.o} - ${item.p}</td><td>${item.q}</td><td>${item.r_diff}</td>
-                <td class="highlight">${item.finalEL.toFixed(2)}</td><td class="highlight">${item.finalML.toFixed(2)}</td>
-            `;
-
-            // पानावरील गोळाबेरीज करणे
-            pgF += item.f; pgG += item.g; pgH += item.h; pgR += item.r_diff;
-            grandF += item.f; grandG += item.g; grandH += item.h; grandR += item.r_diff;
-
-            // दर १५ ओळींनंतर पेज ब्रेकअप ओळ तयार करणे
-            if ((index + 1) % LINES_PER_PAGE === 0 || (index + 1) === history.length) {
-                let brkRow = tbody.insertRow();
-                brkRow.className = "page-break-row";
-                brkRow.innerHTML = `
-                    <td>[पान नंबर ${pageNum} संपले - एकूण बेरीज]</td>
-                    <td>${pgF}</td><td>${pgG.toFixed(2)}</td><td>${pgH.toFixed(2)}</td>
-                    <td colspan="4">--- पुढील पानावर नेले (Carried Forward) ---</td>
-                    <td>${pgR}</td><td colspan="2">---</td>
-                `;
-
-                // स्वतंत्र चार्ट तक्त्यामध्ये डेटा जोडणे
-                let chartRow = chartBody.insertRow();
-                chartRow.innerHTML = `<td>पान नंबर ${pageNum}</td><td>${pgF}</td><td>${pgG.toFixed(2)}</td><td>${pgH.toFixed(2)}</td><td>${pgR}</td>`;
-
-                // नवीन पानासाठी व्हॅल्यू रिसेट करणे
-                pageNum++;
-                pgF = 0; pgG = 0; pgH = 0; pgR = 0;
-            }
-        });
-
-        // चार्टच्या शेवटी 'ग्रँड टोटल' ची ओळ जोडणे
-        if (history.length > 0) {
-            let gtRow = chartBody.insertRow();
-            gtRow.className = "grand-total-row";
-            gtRow.innerHTML = `<td>ग्रँड एकूण संख्या (Grand Total)</td><td>${grandF}</td><td>${grandG.toFixed(2)}</td><td>${grandH.toFixed(2)}</td><td>${grandR}</td>`;
-        }
-    }
-
-    function downloadExcel() {
-        if (history.length === 0) { alert("नोंद उपलब्ध नाही!"); return; }
-        let csvContent = "\uFEFF"; 
-        const headers = ["हजर दिनांक", "हजर दिवस (F)", "साठलेली EL (G)", "साठलेली ML (H)", "एकूण साठलेली EL (K)", "एकूण साठलेली ML (L)", "गैरहजर दिनांक", "रजा प्रकार (Q)", "रजा दिवस (R)", "अंतिम शिल्लक EL (Z)", "अंतिम शिल्लक ML (AA)"];
-        csvContent += headers.join(",") + "\n";
-        
-        let pNum = 1; let pf=0, pg=0, ph=0, pr=0;
-        history.forEach((item, index) => {
-            let row = [`"${item.a} - ${item.b}"`, item.f, item.g.toFixed(2), item.h.toFixed(2), item.k_val.toFixed(2), item.l_val.toFixed(2), `"${item.o} - ${item.p}"`, `"${item.q}"`, item.r_diff, item.finalEL.toFixed(2), item.finalML.toFixed(2)];
-            csvContent += row.join(",") + "\n";
-            
-            pf+=item.f; pg+=item.g; ph+=item.h; pr+=item.r_diff;
-            if ((index + 1) % LINES_PER_PAGE === 0 || (index + 1) === history.length) {
-                csvContent += `[पान क्र ${pNum} एकूण],${pf},${pg.toFixed(2)},${ph.toFixed(2)},,,,[एकूण रजा],${pr},,\n`;
-                pNum++; pf=0; pg=0; ph=0; pr=0;
-            }
-        });
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        link.setAttribute("href", URL.createObjectURL(blob));
-        link.setAttribute("download", "PMC_Raja_Nond.csv");
-        link.click();
-    }
-
-    function calculateEncashment() {
-        let basic = parseFloat(document.getElementById('basic_pay').value) || 0;
-        let da = parseFloat(document.getElementById('da_amount').value) || 0;
-        let elDays = parseFloat(document.getElementById('total_el_shilak').value) || 0;
-        localStorage.setItem("pmc_calc_pay", JSON.stringify({basic, da}));
-        let validDays = elDays > 300 ? 300 : elDays;
-        let totalEncashment = ((basic + da) / 30) * validDays;
-        document.getElementById('encashmentResult').innerHTML = basic > 0 ? `रोखीकरणासाठी ग्राह्य दिवस: ${validDays} दिवस<br>एकूण अंदाजे रजा वेतन रक्कम: 💰 रु. ${totalEncashment.toFixed(2)} /-` : "माहिती भरा, रक्कम येथे दिसेल.";
-    }
-
-    function downloadEncashmentExcel() {
-        let name = document.getElementById('info_name').value || "कर्मचारी", basic = document.getElementById('basic_pay').value || 0, da = document.getElementById('da_amount').value || 0, elDays = document.getElementById('total_el_shilak').value || 0;
-        let validDays = elDays > 300 ? 300 : elDays;
-        let totalEncashment = ((parseFloat(basic) + parseFloat(da)) / 30) * validDays;
-        let csvContent = "\uFEFFसेवानिवृत्ती रजा रोखीकरण अहवाल\n\nकर्मचाऱ्याचे नाव," + name + "\nमूळ वेतन,रु. " + basic + "\nमहागाई भत्ता,रु. " + da + "\nएकूण शिल्लक रजा," + elDays + "\nग्राह्य दिवस," + validDays + "\nएकूण रक्कम,रु. " + totalEncashment.toFixed(2) + "\n";
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        link.setAttribute("href", URL.createObjectURL(blob));
-        link.setAttribute("download", `Leave_Encashment_${name}.csv`);
-        link.click();
-    }
-</script>
-</body>
-</html>
+        let r_diff = Math.ceil(Math.abs(parseDMY(p) - parseDMY(o)) / (1000 * 60 * 60 * 24
