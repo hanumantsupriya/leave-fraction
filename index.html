@@ -16,31 +16,38 @@
         .tab-content.active { display: block; }
 
         .setup-box { background: #e3f2fd; padding: 15px; border-radius: 8px; border: 1px solid #bbdefb; margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
-        .entry-box { background: #fffde7; padding: 15px; border-radius: 8px; border: 1px solid #fbc02d; margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; }
+        
+        /* एंट्री बॉक्स मधील घटक वर लेबल आणि खाली बॉक्स अशा रचनेत आडवे आणण्यासाठी */
+        .entry-box { background: #fffde7; padding: 15px; border-radius: 8px; border: 1px solid #fbc02d; margin-bottom: 20px; display: flex; flex-direction: row; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+        .entry-box > div { flex: 1; min-width: 135px; }
+        
+        /* बटणांचा गट फॉर्मच्या उजव्या बाजूला योग्य पद्धतीने ओळीत बसवण्यासाठी */
+        .entry-box .btn-group { flex: initial; display: flex; flex-direction: row; gap: 8px; min-width: auto; }
+        
+        label { font-weight: bold; font-size: 13px; display: block; margin-bottom: 6px; color: #333; white-space: nowrap; }
+        input, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 13px; background-color: #fff; height: 36px; }
+        input:disabled, input[readonly] { background-color: #eee; color: #555; }
+        
         .essential-box { background: #e0f2f1; padding: 15px; border-radius: 8px; border: 1px solid #4db6ac; margin-bottom: 20px; }
+        .grid-3 { display: flex; flex-direction: row; gap: 15px; align-items: flex-end; flex-wrap: wrap; }
+        .grid-3 > div { flex: 1; min-width: 180px; }
+        .grid-3 .bonus-btn-group { flex: initial; display: flex; gap: 8px; }
+        
         .encash-box { background: #e8f5e9; padding: 20px; border-radius: 8px; border: 1px solid #a5d6a7; margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
         .info-box { background: #fce4ec; padding: 20px; border-radius: 8px; border: 1px solid #f8bbd0; margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
         
-        label { font-weight: bold; font-size: 13px; display: block; margin-bottom: 5px; color: #333; }
-        input, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 14px; background-color: #fff; }
-        input:disabled, input[readonly] { background-color: #eee; color: #555; }
+        /* सर्व मुख्य बटणे सुंदर आणि सुटसुटीत एका आकारात ठेवण्यासाठी */
+        .btn-add { background-color: #1a73e8; color: white; padding: 0 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: bold; height: 36px; white-space: nowrap; }
+        .btn-pagebreak { background-color: #0288d1; color: white; padding: 0 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: bold; height: 36px; white-space: nowrap; }
+        .btn-excel { background-color: #2e7d32; color: white; padding: 0 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: bold; height: 36px; white-space: nowrap; }
+        .btn-delete { background-color: #d32f2f; color: white; padding: 0 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: bold; height: 36px; white-space: nowrap; }
+        .btn-clear { background-color: #555555; color: white; padding: 0 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: bold; height: 36px; white-space: nowrap; }
         
-        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; align-items: end; }
+        .btn-calc-bonus { background-color: #00796b; color: white; padding: 0 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px; height: 36px; }
+        .btn-save-bonus { background-color: #e65100; color: white; padding: 0 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px; height: 36px; display: none; }
         
-        /* फ्रेमच्या बाहेर जाणे रोखण्यासाठी आणि बटणे ओळीत ठेवण्यासाठी फ्लेक्सबॉक्स लेआउट */
-        .btn-group { display: flex; flex-direction: row; gap: 10px; margin-top: 18px; width: 100%; flex-wrap: wrap; justify-content: flex-start; align-items: center; }
-        .btn-add { background-color: #1a73e8; color: white; padding: 12px 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: bold; flex: 1; min-width: 120px; text-align: center; }
-        .btn-pagebreak { background-color: #0288d1; color: white; padding: 12px 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: bold; flex: 1; min-width: 150px; text-align: center; }
-        .btn-excel { background-color: #2e7d32; color: white; padding: 12px 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: bold; flex: 1; min-width: 120px; text-align: center; }
-        .btn-delete { background-color: #d32f2f; color: white; padding: 12px 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: bold; flex: 1; min-width: 120px; text-align: center; }
-        .btn-clear { background-color: #555555; color: white; padding: 12px 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: bold; flex: 1; min-width: 110px; text-align: center; }
-        
-        .btn-calc-bonus { background-color: #00796b; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; width: 100%; }
-        .btn-save-bonus { background-color: #e65100; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; width: 100%; display: none; }
-        
-        /* टेबल स्क्रीनच्या बाहेर जाऊ नये म्हणून कंटेनर */
         .table-responsive { width: 100%; overflow-x: auto; margin-top: 20px; }
-        table { width: 100%; border-collapse: collapse; font-size: 11px; min-width: 1100px; }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; min-width: 1200px; }
         th, td { border: 1px solid #ddd; padding: 6px; text-align: center; }
         th { background-color: #1a73e8; color: white; }
         tr:nth-child(even) { background-color: #f9f9f9; }
@@ -100,7 +107,7 @@
             
             <div class="btn-group">
                 <button class="btn-add" onclick="addEntry()">जतन करा (Save Entry)</button>
-                <button class="btn-pagebreak" onclick="manualPageBreak()">🛑 पेज ब्रेक करा (Manual Break)</button>
+                <button class="btn-pagebreak" onclick="manualPageBreak()">🛑 पेज ब्रेक करा</button>
                 <button class="btn-excel" onclick="downloadExcel()">Excel डाउनलोड करा</button>
                 <button class="btn-delete" id="deleteBtn" style="display:none;" onclick="deleteLastEntry()">शेवटची नोंद हटवा</button>
                 <button class="btn-clear" onclick="clearAllData()">सर्व डेटा पुसा</button>
@@ -118,7 +125,7 @@
                     <label>अकलूज/अतिरिक्त रजा शेवटचा दिनांक:</label>
                     <input type="text" id="bonus_end_date" placeholder="DD/MM/YYYY">
                 </div>
-                <div>
+                <div class="bonus-btn-group">
                     <button class="btn-calc-bonus" id="calcBonusBtn" onclick="calculateBonusLeave()">अतिरिक्त रजा मोजा</button>
                     <button class="btn-save-bonus" id="saveBonusBtn" onclick="saveBonusToTable()">तक्त्यात जमा करा</button>
                 </div>
@@ -300,192 +307,3 @@
 
     function addEntry() {
         let a = document.getElementById('a_start').value, b = document.getElementById('b_end').value;
-        let e = parseFloat(document.getElementById('e_lwp').value) || 0;
-        let o = document.getElementById('o_leave_start').value, p = document.getElementById('p_leave_end').value;
-        let q = document.getElementById('q_type').value;
-
-        if (!a || !b || !p) { alert("कृपया सर्व तारखा भरा!"); return; }
-
-        if (isFirstEntry) {
-            initialValues = { el: parseFloat(document.getElementById('z3_bal').value) || 0, ml: parseFloat(document.getElementById('aa3_bal').value) || 0, p3: document.getElementById('p3_date').value };
-            localStorage.setItem("pmc_initial_values", JSON.stringify(initialValues));
-            document.getElementById('p3_date').disabled = true;
-            document.getElementById('z3_bal').disabled = true;
-            document.getElementById('aa3_bal').disabled = true;
-            isFirstEntry = false;
-        }
-
-        let curEL = history.length > 0 ? history[history.length-1].finalEL : initialValues.el;
-        let curML = history.length > 0 ? history[history.length-1].finalML : initialValues.ml;
-
-        let f = (Math.ceil(Math.abs(parseDMY(b) - parseDMY(a)) / (1000 * 60 * 60 * 24)) + 1) - e;
-        let g = Math.floor(f / 11) + (f % 11) / 100;
-        let h = Math.floor(f / 30) + (f % 30) / 100;
-
-        let z3_int = Math.floor(curEL), z3_mod = Math.round((curEL % 1) * 100);
-        let g_int = Math.floor(g), g_mod = Math.round((g % 1) * 100);
-        let k_val = applyLimits(z3_int + g_int + Math.floor((z3_mod + g_mod)/11) + ((z3_mod + g_mod)%11)/100, 365);
-
-        let aa3_int = Math.floor(curML), aa3_mod = Math.round((curML % 1) * 100);
-        let h_int = Math.floor(h), h_mod = Math.round((h % 1) * 100);
-        let l_val = applyLimits(aa3_int + h_int + Math.floor((aa3_mod + h_mod)/30) + ((aa3_mod + h_mod)%30)/100, 120);
-
-        let r_diff = Math.ceil(Math.abs(parseDMY(p) - parseDMY(o)) / (1000 * 60 * 60 * 24)) + 1;
-
-        let finalEL, finalML;
-        if (q === "हक्काची रजा") {
-            finalEL = (r_diff >= Math.floor(k_val)) ? (k_val % 1) : (Math.floor(k_val) - r_diff + (k_val % 1));
-            finalML = l_val;
-        } else if (q === "वैद्यकीय रजा") {
-            finalEL = applyLimits(Math.max(0, Math.floor(k_val) - Math.max(0, r_diff - Math.floor(l_val)) + (k_val % 1)), 365);
-            finalML = (r_diff >= Math.floor(l_val)) ? (l_val % 1) : (Math.floor(l_val) - r_diff + (l_val % 1));
-        } else { finalEL = k_val; finalML = l_val; }
-
-        finalEL = applyLimits(finalEL, 365); finalML = applyLimits(finalML, 120);
-
-        history.push({ type: "regular", a, b, e, f, g, h, k_val, l_val, o, p, q, r_diff, finalEL, finalML });
-        localStorage.setItem("pmc_leave_history", JSON.stringify(history));
-        
-        renderTable();
-        document.getElementById('a_start').value = formatDMY(nextDay(parseDMY(p)));
-        bPick.clear(); pLeavePick.clear();
-        document.getElementById('o_leave_start').value = "";
-        document.getElementById('e_lwp').value = "0"; 
-        document.getElementById('deleteBtn').style.display = "inline-block";
-    }
-
-    function calculateBonusLeave() {
-        let startStr = document.getElementById('bonus_start_date').value;
-        let endStr = document.getElementById('bonus_end_date').value;
-
-        if(!startStr || !endStr) { alert("कृपया सुरुवातीचा आणि शेवटचा दिनांक निवडा!"); return; }
-        if(history.length === 0) { alert("तक्त्यामध्ये नोंदी असणे आवश्यक आहे!"); return; }
-
-        let dStart = parseDMY(startStr);
-        let dEnd = parseDMY(endStr);
-        
-        let totalCalendarDays = Math.ceil(Math.abs(dEnd - dStart) / (1000 * 60 * 60 * 24)) + 1;
-        let totalR = 0;
-        let totalE = 0;
-
-        history.forEach(item => {
-            if(item.type !== "bonus") {
-                let itemO = parseDMY(item.o);
-                let itemP = parseDMY(item.p);
-                if(itemO >= dStart && itemP <= dEnd) {
-                    totalR += item.r_diff;
-                    totalE += item.e;
-                }
-            }
-        });
-
-        let dutyDays = totalCalendarDays - (totalR + totalE);
-        if(dutyDays < 0) dutyDays = 0;
-
-        let rawExtraLeave = (dutyDays * 15) / 365;
-        let extraLeaveFloor = Math.floor(rawExtraLeave); 
-
-        tempBonusCalculated = extraLeaveFloor;
-        tempBonusPeriod = `${startStr} ते ${endStr}`;
-
-        document.getElementById('bonusResultMsg').innerHTML = `निवडलेल्या अवधीचे एकूण दिवस: ${totalCalendarDays} दिवस<br>
-                                                               एकूण घेतलेल्या रजा: ${totalR} दिवस | एकूण LWP: ${totalE} दिवस<br>
-                                                               प्रत्यक्ष कामाचे दिवस (Duty Days): ${dutyDays} दिवस<br>
-                                                               🎯 एकूण पात्र अतिरिक्त रजा (केवळ मुख्य पूर्णांक संख्या): ${extraLeaveFloor} दिवस`;
-        document.getElementById('saveBonusBtn').style.display = "inline-block";
-    }
-
-    function saveBonusToTable() {
-        if(tempBonusCalculated <= 0) return;
-        let lastRecord = history[history.length - 1];
-        let currentEL = lastRecord.finalEL;
-        let currentML = lastRecord.finalML;
-
-        let newEL_int = Math.floor(currentEL), newEL_mod = Math.round((currentEL % 1) * 100);
-        let updatedEL = applyLimits(newEL_int + tempBonusCalculated + (newEL_mod / 100), 365);
-
-        let nextStartDateStr = lastRecord.type === "bonus" ? lastRecord.nextA : formatDMY(nextDay(parseDMY(lastRecord.p)));
-
-        history.push({
-            type: "bonus",
-            details: `अत्यावश्यक सेवा अतिरिक्त रजा अवधी (${tempBonusPeriod})`,
-            earnedBonus: tempBonusCalculated,
-            finalEL: updatedEL,
-            finalML: currentML,
-            nextA: nextStartDateStr
-        });
-
-        localStorage.setItem("pmc_leave_history", JSON.stringify(history));
-        renderTable();
-
-        document.getElementById('bonusResultMsg').innerText = "अकलूज/अतिरिक्त रजा यशस्वीरित्या तक्त्यात जमा केली आहे!";
-        document.getElementById('saveBonusBtn').style.display = "none";
-        tempBonusCalculated = 0;
-    }
-
-    function manualPageBreak() {
-        if (history.length === 0) { alert("आधी नोंदी जतन करा!"); return; }
-        let lastIndex = history.length - 1;
-        if (pageBreaks.includes(lastIndex)) { alert("या ओळीवर आधीच पेज ब्रेक केलेला आहे!"); return; }
-        
-        if (confirm(`चालू ओळ झाल्यानंतर नवीन पान सुरू करायचे आहे का?`)) {
-            pageBreaks.push(lastIndex);
-            localStorage.setItem("pmc_page_breaks", JSON.stringify(pageBreaks));
-            renderTable();
-        }
-    }
-
-    function deleteLastEntry() {
-        if (history.length === 0) return;
-        if (confirm("शेवटची नोंद हटवायची का?")) {
-            let lastIndex = history.length - 1;
-            history.pop();
-            pageBreaks = pageBreaks.filter(idx => idx !== lastIndex);
-            localStorage.setItem("pmc_page_breaks", JSON.stringify(pageBreaks));
-            localStorage.setItem("pmc_leave_history", JSON.stringify(history));
-            
-            if (history.length === 0) {
-                localStorage.clear(); location.reload();
-            } else {
-                let last = history[history.length - 1];
-                document.getElementById('a_start').value = last.type === "bonus" ? last.nextA : formatDMY(nextDay(parseDMY(last.p)));
-                renderTable();
-            }
-        }
-    }
-
-    function clearAllData() {
-        if (confirm("सर्व डेटा कायमचा पुसला जाईल. खात्री आहे का?")) { localStorage.clear(); location.reload(); }
-    }
-
-    function saveEmployeeInfo() {
-        localStorage.setItem("pmc_emp_info", JSON.stringify({
-            name: document.getElementById('info_name').value, desig: document.getElementById('info_desig').value,
-            dept: document.getElementById('info_dept').value, pf: document.getElementById('info_pf').value,
-            joinDate: document.getElementById('info_join_date').value, retireDate: document.getElementById('info_retire_date').value
-        }));
-    }
-
-    function renderTable() {
-        let tbody = document.querySelector("#recordTable tbody");
-        let chartBody = document.querySelector("#summaryChartTable tbody");
-        tbody.innerHTML = ""; chartBody.innerHTML = "";
-
-        let pageNum = 1;
-        let pgF = 0, pgE = 0, pgG = 0, pgH = 0, pgR = 0;
-        let grandF = 0, grandE = 0, grandG = 0, grandH = 0, grandR = 0;
-
-        history.forEach((item, index) => {
-            let row = tbody.insertRow();
-            if(item.type === "bonus") {
-                row.className = "bonus-row";
-                row.innerHTML = `
-                    <td>${item.details}</td><td>---</td><td>0</td><td style="color:#fff; font-weight:bold; background:#e65100;">+${item.earnedBonus}</td><td>---</td>
-                    <td>---</td><td>---</td><td>---</td><td colspan="3">नियमतः अतिरिक्त रजा मंजुरी (EL Column मध्ये प्लस)</td>
-                    <td class="highlight">${item.finalEL.toFixed(2)}</td><td>${item.finalML.toFixed(2)}</td>
-                `;
-            } else {
-                let lwpValue = (item.e === "" || item.e === undefined || isNaN(item.e)) ? 0 : item.e;
-                row.innerHTML = `
-                    <td>${item.a} - ${item.b}</td><td>${item.f}</td><td>${lwpValue}</td><td>${item.g.toFixed(2)}</td><td>${item.h.toFixed(2)}</td>
-                    <td class="accumulated">${
