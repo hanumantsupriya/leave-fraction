@@ -61,15 +61,15 @@
         <div class="setup-box" id="initialSetup">
             <div>
                 <label>मागील रजा संपल्याचा दिनांक (P3):</label>
-                <input type="date" id="p3_date" onchange="setFirstStartDate()">
+                <input type="date" id="p3_date" onchange="setFirstStartDate(); saveSetupValues();">
             </div>
             <div>
                 <label>सुरुवातीची शिल्लक EL (Z3):</label>
-                <input type="number" step="0.01" id="z3_bal" placeholder="उदा. 10.05">
+                <input type="number" step="0.01" id="z3_bal" placeholder="उदा. 10.05" oninput="saveSetupValues();">
             </div>
             <div>
                 <label>सुरुवातीची शिल्लक ML (AA3):</label>
-                <input type="number" step="0.01" id="aa3_bal" placeholder="उदा. 5.12">
+                <input type="number" step="0.01" id="aa3_bal" placeholder="उदा. 5.12" oninput="saveSetupValues();">
             </div>
         </div>
 
@@ -174,23 +174,22 @@
     let history = []; 
     let pageBreaks = []; 
     let isFirstEntry = true;
-    let initialValues = {};
+    let initialValues = { el: 0, ml: 0, p3: "" };
 
     window.onload = function() {
+        if(localStorage.getItem("pmc_initial_values")) {
+            initialValues = JSON.parse(localStorage.getItem("pmc_initial_values"));
+            document.getElementById('p3_date').value = initialValues.p3 || "";
+            document.getElementById('z3_bal').value = initialValues.el || "";
+            document.getElementById('aa3_bal').value = initialValues.ml || "";
+        }
+
         if(localStorage.getItem("pmc_leave_history")) {
             history = JSON.parse(localStorage.getItem("pmc_leave_history"));
             isFirstEntry = false;
-            initialValues = JSON.parse(localStorage.getItem("pmc_initial_values"));
             if(localStorage.getItem("pmc_page_breaks")) {
                 pageBreaks = JSON.parse(localStorage.getItem("pmc_page_breaks"));
             }
-            
-            document.getElementById('p3_date').value = initialValues.p3;
-            document.getElementById('p3_date').disabled = true;
-            document.getElementById('z3_bal').value = initialValues.el;
-            document.getElementById('z3_bal').disabled = true;
-            document.getElementById('aa3_bal').value = initialValues.ml;
-            document.getElementById('aa3_bal').disabled = true;
             
             let lastRecord = history[history.length - 1];
             document.getElementById('a_start').value = nextDayString(lastRecord.p);
@@ -214,7 +213,19 @@
         }
     };
 
-    // तारीख DD/MM/YYYY स्वरूपात दाखवण्यासाठी कन्व्हर्टर
+    // एडिट ऑप्शन नेहमी चालू ठेवण्यासाठी व्हॅल्यू सेव्ह करण्याचे फंक्शन
+    function saveSetupValues() {
+        initialValues.p3 = document.getElementById('p3_date').value;
+        initialValues.el = parseFloat(document.getElementById('z3_bal').value) || 0;
+        initialValues.ml = parseFloat(document.getElementById('aa3_bal').value) || 0;
+        localStorage.setItem("pmc_initial_values", JSON.stringify(initialValues));
+        if(isFirstEntry) {
+            setFirstStartDate();
+        } else {
+            renderTable(); // सुरुवातीची शिल्लक बदलल्यास तक्ता रिफ्रेश करणे
+        }
+    }
+
     function convertToDDMMYYYY(dateStr) {
         if (!dateStr) return "";
         let parts = dateStr.split("-");
@@ -225,6 +236,7 @@
     }
 
     function nextDayString(dateStr) {
+        if (!dateStr) return "";
         let d = new Date(dateStr);
         d.setDate(d.getDate() + 1);
         return d.toISOString().split('T')[0];
@@ -242,7 +254,7 @@
     }
 
     function setFirstStartDate() {
-        if(isFirstEntry && document.getElementById('p3_date').value) {
+        if(history.length === 0 && document.getElementById('p3_date').value) {
             document.getElementById('a_start').value = nextDayString(document.getElementById('p3_date').value);
         }
     }
@@ -266,14 +278,12 @@
         if (!a || !b || !p) { alert("कृपया सर्व तारखा भरा!"); return; }
 
         if (isFirstEntry) {
-            initialValues = { el: parseFloat(document.getElementById('z3_bal').value) || 0, ml: parseFloat(document.getElementById('aa3_bal').value) || 0, p3: document.getElementById('p3_date').value };
-            localStorage.setItem("pmc_initial_values", JSON.stringify(initialValues));
-            document.getElementById('p3_date').disabled = true;
-            document.getElementById('z3_bal').disabled = true;
-            document.getElementById('aa3_bal').disabled = true;
             isFirstEntry = false;
         }
 
+        renderTable(); 
+        
+        // तक्ता रेंडर झाल्यानंतर पुन्हा नवीन एन्ट्री कॅल्क्युलेशन
         let curEL = history.length > 0 ? history[history.length-1].finalEL : initialValues.el;
         let curML = history.length > 0 ? history[history.length-1].finalML : initialValues.ml;
 
@@ -335,13 +345,15 @@
             
             if (history.length === 0) {
                 isFirstEntry = true;
-                localStorage.clear();
-                location.reload();
+                localStorage.removeItem("pmc_leave_history");
+                localStorage.removeItem("pmc_page_breaks");
+                document.getElementById('a_start').value = initialValues.p3 ? nextDayString(initialValues.p3) : "";
+                document.getElementById('deleteBtn').style.display = "none";
             } else {
                 localStorage.setItem("pmc_leave_history", JSON.stringify(history));
                 document.getElementById('a_start').value = nextDayString(history[history.length-1].p);
-                renderTable();
             }
+            renderTable();
         }
     }
 
@@ -366,9 +378,42 @@
         let pageNum = 1;
         let pgF = 0, pgE = 0, pgG = 0, pgH = 0, pgR = 0;
         let grandF = 0, grandE = 0, grandG = 0, grandH = 0, grandR = 0;
-        let lastEL = 0, lastML = 0;
+        
+        let currentEL = initialValues.el;
+        let currentML = initialValues.ml;
 
         history.forEach((item, index) => {
+            // जर सुरुवातीची शिल्लक बदलली असेल तर संपूर्ण कॅल्क्युलेशन पुन्हा करणे
+            let f = (Math.ceil(Math.abs(new Date(item.b) - new Date(item.a)) / (1000 * 60 * 60 * 24)) + 1) - item.e;
+            let g = Math.floor(f / 11) + (f % 11) / 100;
+            let h = Math.floor(f / 30) + (f % 30) / 100;
+
+            let z3_int = Math.floor(currentEL), z3_mod = Math.round((currentEL % 1) * 100);
+            let g_int = Math.floor(g), g_mod = Math.round((g % 1) * 100);
+            let k_val = applyLimits(z3_int + g_int + Math.floor((z3_mod + g_mod)/11) + ((z3_mod + g_mod)%11)/100, 365);
+
+            let aa3_int = Math.floor(currentML), aa3_mod = Math.round((currentML % 1) * 100);
+            let h_int = Math.floor(h), h_mod = Math.round((h % 1) * 100);
+            let l_val = applyLimits(aa3_int + h_int + Math.floor((aa3_mod + h_mod)/30) + ((aa3_mod + h_mod)%30)/100, 120);
+
+            let r_diff = Math.ceil(Math.abs(new Date(item.p) - new Date(item.o)) / (1000 * 60 * 60 * 24)) + 1;
+
+            if (item.q === "हक्काची रजा") {
+                item.finalEL = (r_diff >= Math.floor(k_val)) ? (k_val % 1) : (Math.floor(k_val) - r_diff + (k_val % 1));
+                item.finalML = l_val;
+            } else if (item.q === "वैद्यकीय रजा") {
+                item.finalEL = applyLimits(Math.max(0, Math.floor(k_val) - Math.max(0, r_diff - Math.floor(l_val)) + (k_val % 1)), 365);
+                item.finalML = (r_diff >= Math.floor(l_val)) ? (l_val % 1) : (Math.floor(l_val) - r_diff + (l_val % 1));
+            } else { item.finalEL = k_val; item.finalML = l_val; }
+
+            item.finalEL = applyLimits(item.finalEL, 365); 
+            item.finalML = applyLimits(item.finalML, 120);
+            
+            item.f = f; item.g = g; item.h = h; item.k_val = k_val; item.l_val = l_val; item.r_diff = r_diff;
+
+            currentEL = item.finalEL;
+            currentML = item.finalML;
+
             let row = tbody.insertRow();
             row.innerHTML = `
                 <td>${convertToDDMMYYYY(item.a)} - ${convertToDDMMYYYY(item.b)}</td>
@@ -387,7 +432,6 @@
 
             pgF += item.f; pgE += (item.e || 0); pgG += item.g; pgH += item.h; pgR += item.r_diff;
             grandF += item.f; grandE += (item.e || 0); grandG += item.g; grandH += item.h; grandR += item.r_diff;
-            lastEL = item.finalEL; lastML = item.finalML;
 
             if (pageBreaks.includes(index) || index === history.length - 1) {
                 let brkRow = tbody.insertRow();
@@ -402,7 +446,7 @@
                 let chartRow = chartBody.insertRow();
                 chartRow.innerHTML = `
                     <td>पान नंबर ${pageNum}</td><td>${pgF}</td><td>${pgE}</td><td>${pgG.toFixed(2)}</td><td>${pgH.toFixed(2)}</td>
-                    <td class="highlight">${lastEL.toFixed(2)}</td><td class="highlight">${lastML.toFixed(2)}</td><td>${pgR}</td>
+                    <td class="highlight">${currentEL.toFixed(2)}</td><td class="highlight">${currentML.toFixed(2)}</td><td>${pgR}</td>
                 `;
 
                 pageNum++;
@@ -410,12 +454,17 @@
             }
         });
 
+        // लोकल स्टोरेजमध्ये अपडेटेड गणना सेव्ह करणे
+        if(history.length > 0) {
+            localStorage.setItem("pmc_leave_history", JSON.stringify(history));
+        }
+
         if (history.length > 0) {
             let gtRow = chartBody.insertRow();
             gtRow.className = "grand-total-row";
             gtRow.innerHTML = `
                 <td>ग्रँड एकूण संख्या (Grand Total)</td><td>${grandF}</td><td>${grandE}</td><td>${grandG.toFixed(2)}</td><td>${grandH.toFixed(2)}</td>
-                <td class="highlight">${lastEL.toFixed(2)}</td><td class="highlight">${lastML.toFixed(2)}</td><td>${grandR}</td>
+                <td class="highlight">${currentEL.toFixed(2)}</td><td class="highlight">${currentML.toFixed(2)}</td><td>${grandR}</td>
             `;
         }
     }
