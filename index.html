@@ -264,6 +264,7 @@
         return next;
     }
 
+    // ३६५ आणि १२० लिमिट तंतोतंत लॉक करण्यासाठी सुधारित फंक्शन
     function applyLimits(val, maxLimit) {
         if (Math.floor(val) >= maxLimit) {
             return maxLimit; 
@@ -275,18 +276,13 @@
         let a = document.getElementById('a_start').value;
         let b = document.getElementById('b_end').value ? document.getElementById('b_end').value.trim() : "";
         let e = parseFloat(document.getElementById('e_lwp').value) || 0;
-        let o = document.getElementById('o_leave_start').value ? document.getElementById('o_leave_start').value.trim() : "";
+        let o = document.getElementById('o_leave_start').value;
         let p = document.getElementById('p_leave_end').value;
         let q = document.getElementById('q_type').value;
 
         if (!a || !p) { 
             alert("कृपया सर्व आवश्यक तारखा भरा!"); 
             return;
-        }
-
-        // 🛠️ सुरक्षा तपासणी: जर B रिकामा ठेवल्यामुळे रजेची सुरुवात तारीख (O) रिकामी आली असेल, तर ती हजर तारीख (A) इतकीच धरली जाईल.
-        if (!o || o === "---") {
-            o = a;
         }
 
         if (isFirstEntry) {
@@ -316,16 +312,17 @@
         let z3_int = Math.floor(curEL), z3_mod = Math.round((curEL % 1) * 100);
         let g_int = Math.floor(g), g_mod = Math.round((g % 1) * 100);
         
+        // मूळ सूत्रानुसार बेरीज
         let raw_k = z3_int + g_int + Math.floor((z3_mod + g_mod)/11) + ((z3_mod + g_mod)%11)/100;
         let k_val = applyLimits(raw_k, 365);
         
         let aa3_int = Math.floor(curML), aa3_mod = Math.round((curML % 1) * 100);
         let h_int = Math.floor(h), h_mod = Math.round((h % 1) * 100);
         
+        // मूळ सूत्रानुसार बेरीज
         let raw_l = aa3_int + h_int + Math.floor((aa3_mod + h_mod)/30) + ((aa3_mod + h_mod)%30)/100;
         let l_val = applyLimits(raw_l, 120);
         
-        // आता o मध्ये अचूक तारीख असल्याने रजा दिवस (R) चे गणित तंतोतंत अचूक होईल.
         let r_diff = Math.ceil(Math.abs(parseDMY(p) - parseDMY(o)) / (1000 * 60 * 60 * 24)) + 1;
 
         let finalEL, finalML;
@@ -344,6 +341,7 @@
             finalML = l_val;
         }
 
+        // अंतिम साठवणूक करताना कडक लिमिट फिल्टर (दशांश भाग उडू नये म्हणून)
         finalEL = applyLimits(finalEL, 365);
         finalML = applyLimits(finalML, 120);
 
@@ -503,13 +501,10 @@
                 let lwpValue = (item.e === "" || item.e === undefined || isNaN(item.e)) ? 0 : item.e;
                 let displayDates = (item.b === "---" || !item.b) ? `${item.a} - ---` : `${item.a} - ${item.b}`;
                 
-                // जर 'B' रिकामा असेल, तर रजेवर गेल्याची तारीख ही 'A' च्या बरोबर दाखवली जाते जेणेकरून विसंगती टळेल
-                let displayLeaveDates = (item.b === "---" || !item.b) ? `${item.a} - ${item.p}` : `${item.o} - ${item.p}`;
-
                 row.innerHTML = `
                     <td>${displayDates}</td><td>${item.f}</td><td>${lwpValue}</td><td>${item.g.toFixed(2)}</td><td>${item.h.toFixed(2)}</td>
                     <td class="accumulated">${item.k_val.toFixed(2)}</td><td class="accumulated">${item.l_val.toFixed(2)}</td>
-                    <td>${displayLeaveDates}</td><td>${item.q}</td><td>${item.r_diff}</td>
+                    <td>${item.o} - ${item.p}</td><td>${item.q}</td><td>${item.r_diff}</td>
                     <td class="highlight">${item.finalEL.toFixed(2)}</td><td class="highlight">${item.finalML.toFixed(2)}</td>
                 `;
                 pgF += item.f; pgE += lwpValue; pgG += item.g; pgH += item.h; pgR += item.r_diff;
@@ -590,8 +585,7 @@
             } else {
                 let lwpValue = (item.e === "" || item.e === undefined || isNaN(item.e)) ? 0 : item.e;
                 let displayDates = (item.b === "---" || !item.b) ? `${item.a} - ---` : `${item.a} - ${item.b}`;
-                let displayLeaveDates = (item.b === "---" || !item.b) ? `${item.a} - ${item.p}` : `${item.o} - ${item.p}`;
-                row = [`"${displayDates}"`, item.f, lwpValue, item.g.toFixed(2), item.h.toFixed(2), item.k_val.toFixed(2), item.l_val.toFixed(2), `"${displayLeaveDates}"`, `"${item.q}"`, item.r_diff, item.finalEL.toFixed(2), item.finalML.toFixed(2)];
+                row = [`"${displayDates}"`, item.f, lwpValue, item.g.toFixed(2), item.h.toFixed(2), item.k_val.toFixed(2), item.l_val.toFixed(2), `"${item.o} - ${item.p}"`, `"${item.q}"`, item.r_diff, item.finalEL.toFixed(2), item.finalML.toFixed(2)];
             }
             csvContent += row.join(",") + "\n";
         });
