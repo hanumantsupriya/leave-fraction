@@ -71,16 +71,17 @@
         <button class="tab-btn" onclick="switchTab('page3')">३. कर्मचाऱ्यांची माहिती</button>
     </div>
 
-    <div id="page1" class="tab-content active">
-        <div class="setup-box" id="initialSetup">
-            <div>
-                <label>मागील रजा संपल्याचा दिनांक (P3):</label>
-                <input type="text" id="p3_date" placeholder="DD/MM/YYYY">
-            </div>
-            <div>
-                <label>सुरुवातीची शिल्लक EL (Z3):</label>
-                <input type="number" step="0.01" id="z3_bal" placeholder="उदा. 10.05">
-            </div>
+   <div class="setup-box" id="initialSetup">
+            <div><label>मागील रजा संपल्याचा दिनांक (P3):</label><input type="text" id="p3_date" placeholder="DD/MM/YYYY"></div>
+            <div><label>सुरुवातीची शिल्लक EL (Z3):</label><input type="number" step="0.01" id="z3_bal" placeholder="उदा. 10.05"></div>
+            <div><label>सुरुवातीची शिल्लक ML (AA3):</label><input type="number" step="0.01" id="aa3_bal" placeholder="उदा. 5.12"></div>
+        </div>
+
+        <div class="entry-box">
+            <div><label>सुरवातीचा हजर दिनांक (A):</label><input type="text" id="a_start" placeholder="DD/MM/YYYY" readonly></div>
+            <div><label>शेवटचा हजर दिनांक (B):</label><input type="text" id="b_end" placeholder="DD/MM/YYYY"></div>
+            <div><label>रजेवर गेल्याचा दिनांक (O):</label><input type="text" id="o_leave_start" placeholder="DD/MM/YYYY" readonly></div>
+            <div><label>रजा संपल्याचा दिनांक (P):</label><input type="text" id="p_leave_end" placeholder="DD/MM/YYYY"></div>
             <div>
                 <label>सुरुवातीची शिल्लक ML (AA3):</label>
                 <input type="number" step="0.01" id="aa3_bal" placeholder="उदा. 5.12">
