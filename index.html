@@ -333,37 +333,26 @@
             isFirstEntry = false;
         }
 
-        let curEL = history.length > 0 ? history[history.length-1].finalEL : initialValues.el;
+       let curEL = history.length > 0 ? history[history.length-1].finalEL : initialValues.el;
         let curML = history.length > 0 ? history[history.length-1].finalML : initialValues.ml;
-
-        let f = (Math.ceil(Math.abs(parseDMY(b) - parseDMY(a)) / (1000 * 60 * 60 * 24)) + 1) - e;
+        let f = (b && b.trim() !== "" && b.trim() !== "---") ? (Math.ceil(Math.abs(parseDMY(b) - parseDMY(a)) / (1000 * 60 * 60 * 24)) + 1) : 0;
+        
         let g = Math.floor(f / 11) + (f % 11) / 100;
         let h = Math.floor(f / 30) + (f % 30) / 100;
-
-        let z3_int = Math.floor(curEL), z3_mod = Math.round((curEL % 1) * 100);
-        let g_int = Math.floor(g), g_mod = Math.round((g % 1) * 100);
-        let k_val = applyLimits(z3_int + g_int + Math.floor((z3_mod + g_mod)/11) + ((z3_mod + g_mod)%11)/100, 365);
-
-        let aa3_int = Math.floor(curML), aa3_mod = Math.round((curML % 1) * 100);
-        let h_int = Math.floor(h), h_mod = Math.round((h % 1) * 100);
-        let l_val = applyLimits(aa3_int + h_int + Math.floor((aa3_mod + h_mod)/30) + ((aa3_mod + h_mod)%30)/100, 120);
-
+        let k_val = applyLimits(Math.floor(curEL) + Math.floor(g) + Math.floor((Math.round((curEL%1)*100) + Math.round((g%1)*100))/11) + ((Math.round((curEL%1)*100) + Math.round((g%1)*100))%11)/100, 365);
+        let l_val = applyLimits(Math.floor(curML) + Math.floor(h) + Math.floor((Math.round((curML%1)*100) + Math.round((h%1)*100))/30) + ((Math.round((curML%1)*100) + Math.round((h%1)*100))%30)/100, 120);
         let r_diff = Math.ceil(Math.abs(parseDMY(p) - parseDMY(o)) / (1000 * 60 * 60 * 24)) + 1;
 
-        let finalEL, finalML;
-        if (q === "हक्काची रजा") {
-            finalEL = (r_diff >= Math.floor(k_val)) ? (k_val % 1) : (Math.floor(k_val) - r_diff + (k_val % 1));
-            finalML = l_val;
-        } else if (q === "वैद्यकीय रजा") {
-            finalEL = applyLimits(Math.max(0, Math.floor(k_val) - Math.max(0, r_diff - Math.floor(l_val)) + (k_val % 1)), 365);
-            finalML = (r_diff >= Math.floor(l_val)) ? (l_val % 1) : (Math.floor(l_val) - r_diff + (l_val % 1));
-        } else { finalEL = k_val; finalML = l_val; }
+        let finalEL, finalML, e = 0;
+        if (q === "हक्काची रजा") { finalEL = (r_diff >= Math.floor(k_val)) ? (k_val%1) : (Math.floor(k_val) - r_diff + (k_val%1)); finalML = l_val; }
+        else if (q === "वैद्यकीय रजा") { finalEL = k_val; finalML = (r_diff >= Math.floor(l_val)) ? (l_val%1) : (Math.floor(l_val) - r_diff + (l_val%1)); }
+        else if (q === "LWP (बिनपगारी रजा)") { e = r_diff; finalEL = k_val; finalML = l_val; }
+        else { finalEL = k_val; finalML = l_val; }
 
         finalEL = applyLimits(finalEL, 365); finalML = applyLimits(finalML, 120);
-
-        history.push({ type: "regular", a, b, e, f, g, h, k_val, l_val, o, p, q, r_diff, finalEL, finalML });
+        let displayB = (b && b.trim() !== "") ? b : "---";
+        history.push({ type: "regular", a, b: displayB, e, f, g, h, k_val, l_val, o, p, q, r_diff, finalEL, finalML });
         localStorage.setItem("pmc_leave_history", JSON.stringify(history));
-        
         renderTable();
         document.getElementById('a_start').value = formatDMY(nextDay(parseDMY(p)));
         bPick.clear(); pLeavePick.clear();
