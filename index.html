@@ -12,8 +12,157 @@
         label { font-weight: bold; font-size: 13px; display: block; margin-bottom: 5px; color: #333; }
         input, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
         input:disabled, input[readonly] { background-color: #eee; color: #555; }
-        /* बटणांसाठी स्टाईल */
         .btn-group { display: flex; gap: 10px; margin-top: 18px; }
         .btn-add { background-color: #1a73e8; color: white; padding: 12px; border: none; border-radius: 5px; cursor: pointer; flex: 2; font-size: 16px; font-weight: bold; }
         .btn-delete { background-color: #d32f2f; color: white; padding: 12px; border: none; border-radius: 5px; cursor: pointer; flex: 1; font-size: 14px; font-weight: bold; display: none; }
-        .btn-add:hover { background-color: #1557b0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 11px; }
+        th, td { border: 1px solid #ddd; padding: 6px; text-align: center; }
+        th { background-color: #1a73e8; color: white; }
+        .highlight { font-weight: bold; color: #1a73e8; background: #e8f0fe; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>पुणे महानगरपालिका रजा नोंदणी पुस्तिका</h2>
+
+    <div class="setup-box" id="initialSetup">
+        <div>
+            <label>मागील रजा संपल्याचा दिनांक (P3):</label>
+            <input type="date" id="p3_date" onchange="setFirstStartDate()">
+        </div>
+        <div>
+            <label>सुरुवातीची शिल्लक EL (Z3):</label>
+            <input type="number" step="0.01" id="z3_bal">
+        </div>
+        <div>
+            <label>सुरुवातीची शिल्लक ML (AA3):</label>
+            <input type="number" step="0.01" id="aa3_bal">
+        </div>
+    </div>
+
+    <div class="entry-box">
+        <div><label>सुरवातीचा हजर दिनांक (A):</label><input type="date" id="a_start" readonly></div>
+        <div><label>शेवटचा हजर दिनांक (B):</label><input type="date" id="b_end" onchange="updateLeaveStartDate()"></div>
+        <div><label>बिन पगारी रजा LWP (E):</label><input type="number" id="e_lwp" value="0"></div>
+        <div><label>रजेवर गेल्याचा दिनांक (O):</label><input type="date" id="o_leave_start" readonly></div>
+        <div><label>रजा संपल्याचा दिनांक (P):</label><input type="date" id="p_leave_end"></div>
+        <div>
+            <label>रजेचा प्रकार (Q):</label>
+            <select id="q_type">
+                <option value="हक्काची रजा">हक्काची रजा</option>
+                <option value="वैद्यकीय रजा">वैद्यकीय रजा</option>
+                <option value="विशेष रजा">विशेष रजा</option>
+            </select>
+        </div>
+        <div class="btn-group">
+            <button class="btn-add" onclick="addEntry()">जतन करा (Save Entry)</button>
+            <button id="delBtn" class="btn-delete" onclick="deleteLastRow()">शेवटची नोंद हटवा</button>
+        </div>
+    </div>
+
+    <table id="recordTable">
+        <thead>
+            <tr>
+                <th>हजर दिनांक (A-B)</th>
+                <th>हजर दिवस (F)</th>
+                <th>साठलेली EL (G)</th>
+                <th>साठलेली ML (H)</th>
+                <th>एकूण साठलेली EL (K)</th>
+                <th>एकूण साठलेली ML (L)</th>
+                <th>गैरहजर दिनांक (O-P)</th>
+                <th>रजा प्रकार (Q)</th>
+                <th>रजा दिवस (R)</th>
+                <th>अंतिम शिल्लक EL (Z)</th>
+                <th>अंतिम शिल्लक ML (AA)</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<script>
+    let currentEL = null, currentML = null, isFirst = true, prevP = null;
+    let lastEL = null, lastML = null; // मागील बॅलन्स साठवण्यासाठी
+
+    function setFirstStartDate() {
+        let p3 = document.getElementById('p3_date').value;
+        if(p3 && isFirst) {
+            let nextA = new Date(p3); nextA.setDate(nextA.getDate() + 1);
+            document.getElementById('a_start').value = nextA.toISOString().split('T')[0];
+        }
+    }
+
+    function updateLeaveStartDate() {
+        let b = document.getElementById('b_end').value;
+        if(b) {
+            let o = new Date(b); o.setDate(o.getDate() + 1);
+            document.getElementById('o_leave_start').value = o.toISOString().split('T')[0];
+        }
+    }
+
+    function applyLimits(val, max) {
+        return (Math.floor(val) >= max) ? max + (val % 1) : val;
+    }
+
+    function addEntry() {
+        let a = document.getElementById('a_start').value, b = document.getElementById('b_end').value, p = document.getElementById('p_leave_end').value;
+        if(!a || !b || !p) { alert("माहिती भरा"); return; }
+
+        if(isFirst) {
+            currentEL = parseFloat(document.getElementById('z3_bal').value) || 0;
+            currentML = parseFloat(document.getElementById('aa3_bal').value) || 0;
+            prevP = document.getElementById('p3_date').value;
+            document.getElementById('initialSetup').style.opacity = "0.5";
+            document.getElementById('p3_date').disabled = document.getElementById('z3_bal').disabled = document.getElementById('aa3_bal').disabled = true;
+            isFirst = false;
+        }
+
+        lastEL = currentEL; lastML = currentML; // बॅलन्स बॅकअप
+        let f = (Math.ceil(Math.abs(new Date(b) - new Date(a)) / 86400000) + 1) - (parseFloat(document.getElementById('e_lwp').value) || 0);
+        let g = Math.floor(f/11) + (f%11)/100, h = Math.floor(f/30) + (f%30)/100;
+        
+        let k = applyLimits(Math.floor(currentEL) + Math.floor(g) + Math.floor((Math.round((currentEL%1)*100) + Math.round((g%1)*100))/11) + ((Math.round((currentEL%1)*100) + Math.round((g%1)*100))%11)/100, 365);
+        let l = applyLimits(Math.floor(currentML) + Math.floor(h) + Math.floor((Math.round((currentML%1)*100) + Math.round((h%1)*100))/30) + ((Math.round((currentML%1)*100) + Math.round((h%1)*100))%30)/100, 120);
+        
+        let r = Math.ceil(Math.abs(new Date(p) - new Date(document.getElementById('o_leave_start').value)) / 86400000) + 1;
+        let q = document.getElementById('q_type').value, z, aa;
+
+        if(q === "हक्काची रजा") { z = (r >= Math.floor(k)) ? (k % 1) : (Math.floor(k) - r + (k % 1)); aa = l; }
+        else if(q === "वैद्यकीय रजा") { z = applyLimits(Math.max(0, Math.floor(k) - Math.max(0, r - Math.floor(l)) + (k % 1)), 365); aa = (r >= Math.floor(l)) ? (l % 1) : (Math.floor(l) - r + (l % 1)); }
+        else { z = k; aa = l; }
+
+        currentEL = applyLimits(z, 365); currentML = applyLimits(aa, 120);
+        let table = document.getElementById("recordTable").getElementsByTagName('tbody')[0];
+        let row = table.insertRow();
+        row.innerHTML = `<td>${a} - ${b}</td><td>${f}</td><td>${g.toFixed(2)}</td><td>${h.toFixed(2)}</td><td class="highlight">${k.toFixed(2)}</td><td class="highlight">${l.toFixed(2)}</td><td>${document.getElementById('o_leave_start').value} - ${p}</td><td>${q}</td><td>${r}</td><td class="highlight">${currentEL.toFixed(2)}</td><td class="highlight">${currentML.toFixed(2)}</td>`;
+        
+        let nextA = new Date(p); nextA.setDate(nextA.getDate() + 1);
+        document.getElementById('a_start').value = nextA.toISOString().split('T')[0];
+        document.getElementById('delBtn').style.display = "block";
+    }
+
+    function deleteLastRow() {
+        let table = document.getElementById("recordTable").getElementsByTagName('tbody')[0];
+        if(table.rows.length > 0) {
+            table.deleteRow(table.rows.length - 1);
+            currentEL = lastEL; currentML = lastML; // बॅलन्स रिस्टोर
+            
+            if(table.rows.length === 0) {
+                isFirst = true;
+                document.getElementById('initialSetup').style.opacity = "1";
+                document.getElementById('p3_date').disabled = document.getElementById('z3_bal').disabled = document.getElementById('aa3_bal').disabled = false;
+                setFirstStartDate();
+                document.getElementById('delBtn').style.display = "none";
+            } else {
+                // मागील रजेची तारीख शोधणे
+                let lastRow = table.rows[table.rows.length - 1];
+                let pDateStr = lastRow.cells[6].split(' - ')[1];
+                let nextA = new Date(pDateStr); nextA.setDate(nextA.getDate() + 1);
+                document.getElementById('a_start').value = nextA.toISOString().split('T')[0];
+            }
+        }
+    }
+</script>
+</body>
+</html>
