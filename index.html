@@ -167,7 +167,7 @@
         <div class="encash-box">
             <div><label>मूळ वेतन (Basic Pay - रु.):</label><input type="number" id="basic_pay" placeholder="उदा. 56100" oninput="calculateEncashment()"></div>
             <div><label>महागाई भत्ता (DA - रु.):</label><input type="number" id="da_amount" placeholder="उदा. 28050" oninput="calculateEncashment()"></div>
-            <div><label>एकूण शिल्लक हक्काची रजा (Total EL):</label><input type="number" id="total_el_shilak" placeholder="नोंदींमधून आपोAutomatically येईल" oninput="calculateEncashment()"></div>
+            <div><label>एकूण शिल्लक हक्काची रजा (Total EL):</label><input type="number" id="total_el_shilak" placeholder="नोंदींमधून आपोआप येईल" oninput="calculateEncashment()"></div>
         </div>
         <div class="result-card" id="encashmentResult">माहिती भरा, रक्कम येथे दिसेल.</div>
         <div style="margin-top: 15px; text-align: right;">
@@ -178,7 +178,7 @@
     <div id="page3" class="tab-content">
         <h3>कर्मचाऱ्यांची वैयक्तिक व सेवा माहिती (Employee Service Info)</h3>
         <div class="info-box">
-            <div><label>कर्मчаऱ्याचे पूर्ण नाव:</label><input type="text" id="info_name" placeholder="उदा. हनुमंत रामचन्द्र आडागळे" oninput="saveEmployeeInfo()"></div>
+            <div><label>कर्मचाऱ्याचे पूर्ण नाव:</label><input type="text" id="info_name" placeholder="उदा. हनुमंत रामचन्द्र आडागळे" oninput="saveEmployeeInfo()"></div>
             <div><label>पदनाम (Designation):</label><input type="text" id="info_desig" placeholder="उदा. वरिष्ठ लिपिक" oninput="saveEmployeeInfo()"></div>
             <div><label>खाते / कार्यालय विभाग:</label><input type="text" id="info_dept" placeholder="उदा. मुख्य खाते व वित्त विभाग" oninput="saveEmployeeInfo()"></div>
             <div><label>कर्मचारी कोड / PF नंबर:</label><input type="text" id="info_pf" placeholder="उदा. PMC-9922" oninput="saveEmployeeInfo()"></div>
@@ -287,11 +287,14 @@
         }
     }
 
+    // सुधारित लिमिट फंक्शन जे दशांश संख्या देखील अचूकपणे मर्यादेत लॉक करते.
     function applyLimits(val, maxLimit) {
-        return (Math.floor(val) >= maxLimit) ? maxLimit + (Math.round((val % 1) * 100) / 100) : val;
+        if (Math.floor(val) >= maxLimit) {
+            return maxLimit; // जर संख्या ३६५ किंवा १२० च्या वर गेली तर थेट मॅक्स लिमिट लॉक होईल (.०८ किंवा .०३ वर जाणार नाही)
+        }
+        return val;
     }
 
-    // मूळ गणितीय प्रक्रियेत कोणताही बदल न करता अचूक वॅलिडेशन आणि डेटा रेकॉर्डिंग
     function addEntry() {
         let a = document.getElementById('a_start').value;
         let b = document.getElementById('b_end').value ? document.getElementById('b_end').value.trim() : "";
@@ -322,20 +325,26 @@
         let curML = history.length > 0 ? history[history.length-1].finalML : initialValues.ml;
         
         let f = 0;
-        // जर B रिकामा असेल, तर हजर दिवस 0 येतील व सूत्रांमध्ये कोणताही अडथळा येणार नाही
         if(b && b !== "---") {
             f = (Math.ceil(Math.abs(parseDMY(b) - parseDMY(a)) / (1000 * 60 * 60 * 24)) + 1) - e;
         }
         
         let g = Math.floor(f / 11) + (f % 11) / 100;
         let h = Math.floor(f / 30) + (f % 30) / 100;
+        
         let z3_int = Math.floor(curEL), z3_mod = Math.round((curEL % 1) * 100);
         let g_int = Math.floor(g), g_mod = Math.round((g % 1) * 100);
-        let k_val = applyLimits(z3_int + g_int + Math.floor((z3_mod + g_mod)/11) + ((z3_mod + g_mod)%11)/100, 365);
+        
+        // मूळ रीतीने बेरीज करून लिमिट ३६५ वर लॉक करणे
+        let raw_k = z3_int + g_int + Math.floor((z3_mod + g_mod)/11) + ((z3_mod + g_mod)%11)/100;
+        let k_val = applyLimits(raw_k, 365);
         
         let aa3_int = Math.floor(curML), aa3_mod = Math.round((curML % 1) * 100);
         let h_int = Math.floor(h), h_mod = Math.round((h % 1) * 100);
-        let l_val = applyLimits(aa3_int + h_int + Math.floor((aa3_mod + h_mod)/30) + ((aa3_mod + h_mod)%30)/100, 120);
+        
+        // मूळ रीतीने बेरीज करून लिमिट १२० वर लॉक करणे
+        let raw_l = aa3_int + h_int + Math.floor((aa3_mod + h_mod)/30) + ((aa3_mod + h_mod)%30)/100;
+        let l_val = applyLimits(raw_l, 120);
         
         let r_diff = Math.ceil(Math.abs(parseDMY(p) - parseDMY(o)) / (1000 * 60 * 60 * 24)) + 1;
 
@@ -358,7 +367,6 @@
         finalEL = applyLimits(finalEL, 365);
         finalML = applyLimits(finalML, 120);
 
-        // जर B भरला नसेल तर '---' स्टोअर होईल जेणेकरून रेंडरिंग करताना मदत होईल
         let finalB = (b === "" || b === "---") ? "---" : b;
 
         history.push({ 
@@ -491,7 +499,6 @@
         }));
     }
 
-    // या फंक्शनमध्ये पानांचा अचूक अवधी (Date Range) शोधून रेंडर करण्याचे लॉजिक अपडेट केले आहे
     function renderTable() {
         let tbody = document.querySelector("#recordTable tbody");
         let chartBody = document.querySelector("#summaryChartTable tbody");
@@ -501,7 +508,7 @@
         let pgF = 0, pgE = 0, pgG = 0, pgH = 0, pgR = 0;
         let grandF = 0, grandE = 0, grandG = 0, grandH = 0, grandR = 0;
         
-        let pageStartIndex = 0; // चालू पानावरील पहिल्या नोंदीचा इंडेक्स
+        let pageStartIndex = 0;
 
         history.forEach((item, index) => {
             let row = tbody.insertRow();
@@ -514,8 +521,6 @@
                 `;
             } else {
                 let lwpValue = (item.e === "" || item.e === undefined || isNaN(item.e)) ? 0 : item.e;
-                
-                // जर 'B' रिकामा (---) असेल तर 'A - ---' ऐवजी फक्त '---' किंवा योग्य फॉरमॅट दिसेल
                 let displayDates = (item.b === "---" || !item.b) ? `${item.a} - ---` : `${item.a} - ${item.b}`;
                 
                 row.innerHTML = `
@@ -528,32 +533,25 @@
                 grandF += item.f; grandE += lwpValue; grandG += item.g; grandH += item.h; grandR += item.r_diff;
             }
 
-            // पेज ब्रेक ओळ किंवा शेवटची ओळ आल्यावर अचूक तारीख अवधी निश्चित करणे
             if (pageBreaks.includes(index) || index === history.length - 1) {
-                
-                // पानावरील पहिल्या आणि शेवटच्या नोंदीची तारीख शोधणे
                 let startPeriodDate = "---";
                 let endPeriodDate = "---";
                 
-                // पहिल्या नियमित नोंदीची तारीख मिळवणे
                 for(let i = pageStartIndex; i <= index; i++) {
                     if(history[i] && history[i].type !== "bonus") {
                         startPeriodDate = history[i].a;
                         break;
                     } else if(history[i] && history[i].type === "bonus") {
-                        // बोनस एंट्री असल्यास पीरीयडची सुरुवातीची तारीख काढणे
                         let pParts = history[i].details.match(/\((.*?) ते/);
                         if(pParts && pParts[1]) { startPeriodDate = pParts[1].trim(); break; }
                     }
                 }
                 
-                // शेवटच्या नियमित नोंदीची तारीख मिळवणे
                 for(let i = index; i >= pageStartIndex; i--) {
                     if(history[i] && history[i].type !== "bonus") {
                         endPeriodDate = history[i].p;
                         break;
                     } else if(history[i] && history[i].type === "bonus") {
-                        // बोनस एंट्री असल्यास पीरीयडची शेवटची तारीख काढणे
                         let pParts = history[i].details.match(/ते (.*?)\)/);
                         if(pParts && pParts[1]) { endPeriodDate = pParts[1].trim(); break; }
                     }
@@ -575,7 +573,7 @@
 
                 pageNum++;
                 pgF = 0; pgE = 0; pgG = 0; pgH = 0; pgR = 0;
-                pageStartIndex = index + 1; // पुढील पानासाठी नवा इंडेक्स सेट करणे
+                pageStartIndex = index + 1;
             }
         });
         if (history.length > 0) {
@@ -619,6 +617,7 @@
         document.getElementById('encashmentResult').innerHTML = basic > 0 ? `रोखीकरणासाठी ग्राह्य दिवस: ${validDays} दिवस<br>एकूण अंदाजे रजा वेतन रक्कम: 💰 रु. ${totalEncashment.toFixed(2)} /-` : "माहिती भरा, रक्कम येथे दिसेल.";
     }
 
+    // [cite: 184, 185, 186, 187]
     function downloadEncashmentExcel() {
         let name = document.getElementById('info_name').value || "कर्मचारी", basic = document.getElementById('basic_pay').value || 0, da = document.getElementById('da_amount').value || 0, elDays = document.getElementById('total_el_shilak').value || 0;
         let validDays = elDays > 300 ? 300 : elDays;
