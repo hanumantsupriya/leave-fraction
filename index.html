@@ -264,10 +264,33 @@
         return next;
     }
 
-    // ३६५ आणि १२० लिमिट तंतोतंत लॉक करण्यासाठी सुधारित फंक्शन
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+        if(tabId === 'page2' && history.length > 0) {
+            document.getElementById('total_el_shilak').value = Math.floor(history[history.length - 1].finalEL);
+            calculateEncashment();
+        }
+    }
+
+    function setFirstStartDate() {
+        if(isFirstEntry && document.getElementById('p3_date').value) {
+            document.getElementById('a_start').value = formatDMY(nextDay(parseDMY(document.getElementById('p3_date').value)));
+        }
+    }
+
+    function updateLeaveStartDate() {
+        if(document.getElementById('b_end').value) {
+            document.getElementById('o_leave_start').value = formatDMY(nextDay(parseDMY(document.getElementById('b_end').value)));
+        }
+    }
+
+    // सुधारित लिमिट फंक्शन जे दशांश संख्या देखील अचूकपणे मर्यादेत लॉक करते.
     function applyLimits(val, maxLimit) {
         if (Math.floor(val) >= maxLimit) {
-            return maxLimit; 
+            return maxLimit; // जर संख्या ३६५ किंवा १२० च्या वर गेली तर थेट मॅक्स लिमिट लॉक होईल (.०८ किंवा .०३ वर जाणार नाही)
         }
         return val;
     }
@@ -312,14 +335,14 @@
         let z3_int = Math.floor(curEL), z3_mod = Math.round((curEL % 1) * 100);
         let g_int = Math.floor(g), g_mod = Math.round((g % 1) * 100);
         
-        // मूळ सूत्रानुसार बेरीज
+        // मूळ रीतीने बेरीज करून लिमिट ३६५ वर लॉक करणे
         let raw_k = z3_int + g_int + Math.floor((z3_mod + g_mod)/11) + ((z3_mod + g_mod)%11)/100;
         let k_val = applyLimits(raw_k, 365);
         
         let aa3_int = Math.floor(curML), aa3_mod = Math.round((curML % 1) * 100);
         let h_int = Math.floor(h), h_mod = Math.round((h % 1) * 100);
         
-        // मूळ सूत्रानुसार बेरीज
+        // मूळ रीतीने बेरीज करून लिमिट १२० वर लॉक करणे
         let raw_l = aa3_int + h_int + Math.floor((aa3_mod + h_mod)/30) + ((aa3_mod + h_mod)%30)/100;
         let l_val = applyLimits(raw_l, 120);
         
@@ -330,7 +353,7 @@
             finalEL = (r_diff >= Math.floor(k_val)) ? (k_val % 1) : (Math.floor(k_val) - r_diff + (k_val % 1));
             finalML = l_val;
         } else if (q === "वैद्यकीय रजा") {
-            finalEL = Math.max(0, Math.floor(k_val) - Math.max(0, r_diff - Math.floor(l_val)) + (k_val % 1));
+            finalEL = applyLimits(Math.max(0, Math.floor(k_val) - Math.max(0, r_diff - Math.floor(l_val)) + (k_val % 1)), 365);
             finalML = (r_diff >= Math.floor(l_val)) ? (l_val % 1) : (Math.floor(l_val) - r_diff + (l_val % 1));
         } else if (q === "LWP (बिनपगारी)") {
             e = e + r_diff;
@@ -341,7 +364,6 @@
             finalML = l_val;
         }
 
-        // अंतिम साठवणूक करताना कडक लिमिट फिल्टर (दशांश भाग उडू नये म्हणून)
         finalEL = applyLimits(finalEL, 365);
         finalML = applyLimits(finalML, 120);
 
@@ -561,17 +583,6 @@
         }
     }
 
-    function switchTab(tabId) {
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
-        if(event && event.currentTarget) event.currentTarget.classList.add('active');
-        if(tabId === 'page2' && history.length > 0) {
-            document.getElementById('total_el_shilak').value = Math.floor(history[history.length - 1].finalEL);
-            calculateEncashment();
-        }
-    }
-
     function downloadExcel() {
         if (history.length === 0) { alert("नोंद उपलब्ध नाही!"); return; }
         let csvContent = "\uFEFF";
@@ -606,6 +617,7 @@
         document.getElementById('encashmentResult').innerHTML = basic > 0 ? `रोखीकरणासाठी ग्राह्य दिवस: ${validDays} दिवस<br>एकूण अंदाजे रजा वेतन रक्कम: 💰 रु. ${totalEncashment.toFixed(2)} /-` : "माहिती भरा, रक्कम येथे दिसेल.";
     }
 
+    // [cite: 184, 185, 186, 187]
     function downloadEncashmentExcel() {
         let name = document.getElementById('info_name').value || "कर्मचारी", basic = document.getElementById('basic_pay').value || 0, da = document.getElementById('da_amount').value || 0, elDays = document.getElementById('total_el_shilak').value || 0;
         let validDays = elDays > 300 ? 300 : elDays;
