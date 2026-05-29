@@ -488,11 +488,12 @@
             localStorage.setItem("pmc_page_breaks", JSON.stringify(pageBreaks));
             localStorage.setItem("pmc_leave_history", JSON.stringify(history));
             if (history.length === 0) {
-                localStorage.clear();
-                location.reload();
-            } else {
+                localStorage.clear(); location.reload();
+             } else {
                 let last = history[history.length - 1];
-                document.getElementById('a_start').value = last.type === "bonus" ? last.nextA : formatDMY(nextDay(parseDMY(last.p)));
+                let nextA = last.type === "bonus" ? last.nextA : formatDMY(nextDay(parseDMY(last.p)));
+                document.getElementById('a_start').value = nextA;
+                document.getElementById('o_leave_start').value = nextA;
                 renderTable();
             }
         }
