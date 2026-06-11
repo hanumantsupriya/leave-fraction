@@ -59,6 +59,7 @@ tr:nth-child(even) { background-color: #f9f9f9; }
 .macp-stage-card h5 { margin: 0 0 10px 0; color: #e65100; border-bottom: 1px solid #ffe0b2; padding-bottom: 5px; }
 .macp-stage-card div { margin-bottom: 8px; }
 .employee-select-box { background: #e8f5e9; padding: 15px; border-radius: 8px; border: 1px solid #a5d6a7; margin-bottom: 20px; display: flex; gap: 15px; align-items: flex-end; }
+.import-box { background: #fff3e0; border: 1px dashed #e65100; padding: 10px 15px; border-radius: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
 </style>
 </head>
 <body>
@@ -66,6 +67,7 @@ tr:nth-child(even) { background-color: #f9f9f9; }
 <div class="container">
 <h2>पुणे महानगरपालिका रजा नोंद व सेवानिवृत्ती व्यवस्थापन प्रणाली</h2>
 
+<!-- कर्मचारी डेटाबेस निवड रकाना (Database Selector) -->
 <div class="employee-select-box">
     <div style="flex: 1;">
         <label style="color:#2e7d32;">👤 कर्मचारी निवडा (सध्या सेव्ह असलेले सर्व कर्मचारी):</label>
@@ -74,6 +76,15 @@ tr:nth-child(even) { background-color: #f9f9f9; }
         </select>
     </div>
     <div style="font-weight: bold; color: #1b5e20; padding-bottom: 10px;" id="current_active_emp_label">🎯 सद्या ॲक्टिव्ह: नवीन नोंदणी पुस्तिका</div>
+</div>
+
+<!-- 👉 नवीन जोडणी: एक्सेल फाईल थेट अपलोड करण्याचे प्रगत बटण पैनल -->
+<div class="import-box">
+    <div>
+        <span style="font-weight:bold; color:#e65100;">📥 आधीच्या पीसीवरील अर्धवट कामाची एक्सेल (.csv) फाईल इथे अपलोड करा:</span>
+        <input type="file" id="excel_file_import" accept=".csv" style="display:inline-block; width:auto; margin-left:15px; height:auto; padding:4px;">
+    </div>
+    <button class="btn-pagebreak" style="background-color:#e65100; height:34px;" onclick="importExcelToSystem()">फायलीचा डेटा लोड करा</button>
 </div>
 
 <div class="tab-bar">
@@ -87,7 +98,7 @@ tr:nth-child(even) { background-color: #f9f9f9; }
 <div id="page1" class="tab-content active">
 <div class="setup-box" id="initialSetup">
 <div>
-<label>ماगील रजा संपल्याचा दिनांक (P3):</label>
+<label>मागील रजा संपल्याचा दिनांक (P3):</label>
 <input type="text" id="p3_date" placeholder="DD/MM/YYYY">
 </div>
 <div>
@@ -339,7 +350,7 @@ let tempTotalDays = 0;
 let tempSpentDays = 0;
 let tempDutyDays = 0;
 let grandTotalLwpGlobal = 0;
-let editIndex = -1; // -1 म्हणजे नवीन नोंद, संख्या असल्यास एडिट मोड चालू
+let editIndex = -1;
 
 const config = { dateFormat: "d/m/Y", allowInput: true };
 const p3Pick = flatpickr("#p3_date", { ...config, onChange: setFirstStartDate });
@@ -506,7 +517,6 @@ flatpickr(row.querySelector('.lwp-end-pick'), config);
 if(startVal && endVal) updateLwpRowDays(index);
 }
 
-// 👉 नवीन सुधारणा: LWP पॅनेलमध्ये "एकूण दिवस" लाईव्ह काउंट कॅल्क्युलेट करणे
 function updateLwpRowDays(index) {
     let sStr = document.querySelector(`#lwp_row_${index} .lwp-start-pick`).value;
     let eStr = document.querySelector(`#lwp_row_${index} .lwp-end-pick`).value;
@@ -552,6 +562,99 @@ else if(currentTotal !== targetLwp) { saveBtn.disabled = true; saveBtn.style.opa
 else { saveBtn.disabled = false; saveBtn.style.opacity = "1"; msgBox.innerHTML = "✅ दिवस यशस्वीरित्या जुळले!"; msgBox.style.color = "#2e7d32"; }
 }
 
+// 👉 नवीन जोडणी: दुसऱ्या पीसीवर एक्सेल फाईल थेट अपलोड (Import CSV) करण्याचे मास्टर इंजिन
+function importExcelToSystem() {
+    let fileInput = document.getElementById('excel_file_import');
+    if (!fileInput.files.length) { alert("कृपया आधी लोड करण्यासाठी वैध .csv फाईल निवडा!"); return; }
+    
+    let file = fileInput.files[0];
+    let reader = new FileReader();
+    
+    reader.onload = function(e) {
+        let text = e.target.result;
+        let lines = text.split("\n");
+        if (lines.length < 2) { alert("या फाईलमध्ये कोणताही वैध डेटा आढळला नाही!"); return; }
+        
+        let newHistory = [];
+        let tempIsFirst = true;
+        
+        for (let i = 1; i < lines.length; i++) {
+            let line = lines[i].trim();
+            if (!line) continue;
+            
+            // CSV डेटा स्प्लिट (Comma separation handling)
+            let cols = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+            if (cols.length < 12) continue;
+            
+            let col0 = cols[0].replace(/"/g, "").trim(); // हजर दिनांक किंवा बोनस डिटेल्स अवधी
+            
+            // जर हा बोनस प्रकारचा (अतिरिक्त रजा मोजा) डेटा असेल
+            if (col0.includes("अत्यावश्यक सेवा अतिरिक्त रजा अवधी")) {
+                let parts = col0.split(" [एकूण दिवस: ");
+                let details = parts[0] || "अत्यावश्यक सेवा अतिरिक्त रजा अवधी";
+                let bonusVal = parseInt(cols[9].replace("+", "").trim()) || 0;
+                
+                newHistory.push({
+                    type: "bonus", details: details, earnedBonus: bonusVal,
+                    finalEL: 0, finalML: 0, nextA: "", bonusStart: "", bonusEnd: "",
+                    totalDays: 0, spentDays: 0, dutyDays: 0
+                });
+            }
+            // जर हा मॅन्युअल रजा प्रकारचा डेटा असेल
+            else if (col0.includes("अतिरिक्त रजा (")) {
+                let bonusVal = parseInt(cols[9].replace("+", "").trim()) || 0;
+                newHistory.push({
+                    type: "annual_extra", a: col0, b: "---", e: 0, f: 0, g: 0, h: 0,
+                    k_val: 0, l_val: 0, o: "वार्षिक जमा", p: bonusVal + " दिवस",
+                    q: "अन्तरिक्त सेवा रजा", r_diff: 0, earnedBonus: bonusVal, finalEL: 0, finalML: 0, lwpIntervals: []
+                });
+            }
+            // नेहमीची रजा किंवा सुरेंडर नोंद असल्यास
+            else {
+                let dates = col0.split(" - ");
+                let a_start = dates[0] || "";
+                let b_end = dates[1] || "---";
+                let lwp = parseFloat(cols[2].replace(/"/g, "")) || 0;
+                let leaveDates = cols[7].replace(/"/g, "").split(" - ");
+                let o_leave = leaveDates[0] || "---";
+                let p_leave = leaveDates[1] || "---";
+                let q_type = cols[8].replace(/"/g, "") || "हक्काची रजा";
+                let r_diff = parseInt(cols[9].trim()) || 0;
+                
+                if (tempIsFirst) {
+                    // पहिल्या ओळीवरून मागील शिल्लक व्हॅल्यू सेट करणे (रिव्हर्स कॅल्क्युलेटर)
+                    let finalEL = parseFloat(cols[10]) || 0;
+                    let finalML = parseFloat(cols[11]) || 0;
+                    
+                    initialValues = { el: finalEL, ml: finalML, p3: a_start };
+                    localStorage.setItem("pmc_initial_values", JSON.stringify(initialValues));
+                    document.getElementById('z3_bal').value = finalEL;
+                    document.getElementById('aa3_bal').value = finalML;
+                    document.getElementById('p3_date').value = a_start;
+                    
+                    tempIsFirst = false;
+                    isFirstEntry = false;
+                }
+                
+                newHistory.push({
+                    type: "regular", a: a_start, b: b_end, e: lwp, f: 0, g: 0, h: 0, k_val: 0, l_val: 0,
+                    o: o_leave, p: p_leave, q: q_type, r_diff: r_diff, finalEL: 0, finalML: 0, lwpIntervals: []
+                });
+            }
+        }
+        
+        if (newHistory.length > 0) {
+            history = newHistory;
+            localStorage.setItem("pmc_leave_history", JSON.stringify(history));
+            recalculateAndRender();
+            alert("🎯 एक्सेल फाईलमधील जुना सर्व डेटा यशस्वीरित्या नव्या पीसीवर आयात (Import) झाला आहे! तुम्ही काम पुढे सुरू करू शकता.");
+        } else {
+            alert("❌ फाईल फॉरमॅट चुकीचा आहे किंवा कोणताही रेकॉर्ड सापडला नाही.");
+        }
+    };
+    reader.readAsText(file);
+}
+
 function validateLwpDatesScope() {
 let aStr = document.getElementById('a_start').value;
 let bStr = document.getElementById('b_end').value;
@@ -566,6 +669,13 @@ if(s && (s < aDate || s > bDate)) inScope = false;
 if(e && (e < aDate || e > bDate)) inScope = false;
 });
 return inScope;
+}
+
+function applyLimits(val, maxVal) {
+    let base = Math.floor(val);
+    let dec = Math.round((val % 1) * 100);
+    if (base >= maxVal) { return maxVal; }
+    return base + (dec / 100);
 }
 
 function addEntry() {
@@ -608,10 +718,9 @@ let entryObject = {
     finalEL: 0, finalML: 0, lwpIntervals: lwpIntervals
 };
 
-// 👉 दुरुस्ती: जर एडिट मोड चालू असेल, तर नवीन पुश करण्याऐवजी जुन्या ओळीत डेटा अपडेट करणे
 if(editIndex > -1) {
     history[editIndex] = entryObject;
-    editIndex = -1; // रिसेट
+    editIndex = -1;
     document.getElementById('saveEntryBtn').innerText = "जतन करा (Save Entry)";
     document.getElementById('saveEntryBtn').style.backgroundColor = "#1a73e8";
 } else {
@@ -781,7 +890,6 @@ gtRow.innerHTML = `<td>ग्रँड एकूण संख्या (Grand To
 generateLeaveAndLwpReports();
 }
 
-// 👉 नवीन सुधारणा: विशिष्ट ओळीमधील डेटा दुरुस्त करण्यासाठी वर फॉर्ममध्ये आणणे
 function editRow(idx) {
     let item = history[idx];
     if(item.type !== "regular") { alert("केवळ नेहमीची रजा नोंदच एडिट करता येईल!"); return; }
@@ -935,7 +1043,6 @@ joinDate: document.getElementById('info_join_date').value, retireDate: document.
 }));
 }
 
-// 👉 नवीन सुधारणा: लोकल ब्राउझर स्टोरेजमध्ये अनेक कर्मचाऱ्यांचा संपूर्ण डेटा बँक तयार करणे
 function saveCurrentEmployeeToDatabase() {
     let pf = document.getElementById('info_pf').value.trim();
     let name = document.getElementById('info_name').value.trim();
@@ -993,7 +1100,7 @@ function loadSelectedEmployeeData() {
         
         document.getElementById('current_active_emp_label').innerText = `🎯 सद्या ॲक्टिव्ह: ${empData.empInfo.name} (${pf})`;
         isFirstEntry = false;
-        location.reload(); // इंटरफेस अपडेट करण्यासाठी लोड करणे
+        location.reload();
     }
 }
 
@@ -1044,7 +1151,6 @@ function calculateMacp() {
 let joinStr = document.getElementById('macp_join_date').value;
 let currentLevel = document.getElementById('macp_current_level').value;
 let resultBox = document.getElementById('macpResult');
-
 if(!joinStr) { resultBox.innerHTML = "⚠️ कृपया प्रथम नियुक्ती दिनांक टाका."; return; }
 let joinDate = parseDMY(joinStr);
 
@@ -1052,8 +1158,7 @@ let t1Years = parseInt(document.getElementById('macp_term1').value) || 10;
 let block1End = new Date(joinDate.getFullYear() + t1Years, joinDate.getMonth(), joinDate.getDate());
 let lwp1 = getBlockLwpDaysRange(joinDate, block1End);
 document.getElementById('macp_lwp1').value = lwp1;
-let susp1 = countDaysInCalendar('macp_susp_start1', 'macp_susp_end1');
-let penalty1 = lwp1 + susp1;
+let penalty1 = lwp1 + countDaysInCalendar('macp_susp_start1', 'macp_susp_end1');
 let macp1_hypo = new Date(joinDate.getFullYear() + t1Years, joinDate.getMonth(), joinDate.getDate());
 if(penalty1 > 0) macp1_hypo.setDate(macp1_hypo.getDate() + penalty1);
 let macp1_actual = checkActualDueDate(macp1_hypo);
