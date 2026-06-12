@@ -1237,12 +1237,11 @@ resultBox.innerHTML = `
 function generateLeaveAndLwpReports() {
 let lwpMap = {}; let leaveMap = {}; let grandLwpSum = 0;
 
-history.forEach(item => {
-    // जर ही ओळ मॅन्युअल बोनस, वार्षिक अतिरिक्त रजा किंवा पेज ब्रेकची एकत्रित बेरीज असेल तर स्किप करा
+history.forEach((item, index) => {
     if (item.type === "bonus" || item.type === "annual_extra") return;
     if (item.a && (item.a.includes("पान") || item.a.includes("एकूण") || item.a.includes("["))) return;
 
-    // १. बिनपगारी रजा (LWP) अहवाल कॅल्क्युलेशन सुरक्षित करणे
+    // १. बिनपगारी रजा (LWP) अहवाल गणना
     if(item.lwpIntervals && item.lwpIntervals.length > 0) {
         item.lwpIntervals.forEach(interval => {
             let dStart = parseDMY(interval.start), dEnd = parseDMY(interval.end);
@@ -1259,8 +1258,7 @@ history.forEach(item => {
         grandLwpSum += parseFloat(item.e) || 0; 
     }
 
-    // २. 👉 मुख्य दुरुस्ती: इतर सर्व रजा (EL/ML/विशेष) अहवाल कॅल्क्युलेशन सुरक्षित करणे
-    // जर तारीख कॉलममध्ये "---" किंवा "रोखीकरण" असा मजकूर असेल तर तिला स्किप करा, जेणेकरून एरर येणार नाही
+    // २. 👉 मुख्य दुरुस्ती: प्रत्यक्ष खर्च झालेल्या रजेनुसार महिनावार विभागणी
     if (item.o && item.p && item.o !== "---" && item.o !== "रोखीकरण" && item.p !== "---" && !item.p.includes("दिवस")) {
         let dStart = parseDMY(item.o); 
         let dEnd = parseDMY(item.p);
@@ -1269,6 +1267,34 @@ history.forEach(item => {
             let current = new Date(dStart.getFullYear(), dStart.getMonth(), dStart.getDate());
             let targetEnd = new Date(dEnd.getFullYear(), dEnd.getMonth(), dEnd.getDate());
 
+            // मागील ओळीवरून चालू ओळीची बेस शिल्लक मिळवणे
+            let prevEL = index > 0 ? history[index - 1].finalEL : (initialValues.el || 0);
+            let prevML = index > 0 ? history[index - 1].finalML : (initialValues.ml || 0);
+            
+            let k_base = Math.floor(item.k_val || 0);
+            let l_base = Math.floor(item.l_val || 0);
+            let r_total = item.r_diff || 0;
+
+            // प्रत्यक्षात खर्च झालेले EL आणि ML दिवस मोजणे (जसे मुख्य फॉर्म्युला मोजतो)
+            let actualSpentEL = 0;
+            let actualSpentML = 0;
+            let actualSpentSpecial = 0;
+
+            if (item.q === "हक्काची रजा" || item.q === "सुरेंडर रजा") {
+                actualSpentEL = r_total;
+            } else if (item.q === "वैद्यकीय रजा") {
+                if (r_total <= l_base) {
+                    actualSpentML = r_total; // जर मेडिकल शिल्लक असेल तर फक्त ML खर्च होईल
+                } else {
+                    actualSpentML = l_base; // जितकी शिल्लक होती तेवढी ML खर्च झाली
+                    actualSpentEL = r_total - l_base; // उरलेली रजा EL मधून खर्च झाली!
+                }
+            } else {
+                actualSpentSpecial = r_total; // विशेष रजा
+            }
+
+            // एकूण दिवसांचे कॅलेंडर दिवसांमध्ये वितरण करताना प्रत्यक्ष रजेचा प्रकार लागू करणे
+            let dayCounter = 1;
             while (current <= targetEnd) {
                 let monthKey = `${String(current.getMonth() + 1).padStart(2, '0')}/${current.getFullYear()}`;
                 
@@ -1276,18 +1302,28 @@ history.forEach(item => {
                     leaveMap[monthKey] = { "हक्काची रजा": 0, "वैद्यकीय रजा": 0, "विशेष रजा": 0, breakups: [] };
                 }
                 
-                // रजा प्रकार तपासून दिवसांची महिनावार बेरीज करणे
-                if (leaveMap[monthKey][item.q] !== undefined) {
-                    leaveMap[monthKey][item.q] += 1;
+                // दिवसानुसार ठरवणे की हा दिवस EL मध्ये मोजावा की ML मध्ये
+                if (item.q === "विशेष रजा") {
+                    leaveMap[monthKey]["विशेष रजा"] += 1;
+                } else if (item.q === "हक्काची रजा" || item.q === "सुरेंडर रजा") {
+                    leaveMap[monthKey]["हक्काची रजा"] += 1;
+                } else if (item.q === "वैद्यकीय रजा") {
+                    // जोपर्यंत मूळ शिल्लक संपत नाही तोपर्यंत दिवस ML मध्ये मोजा, नंतर EL मध्ये मोजा
+                    if (dayCounter <= actualSpentML) {
+                        leaveMap[monthKey]["वैद्यकीय रजा"] += 1;
+                    } else {
+                        leaveMap[monthKey]["हक्काची रजा"] += 1; // प्रत्यक्ष खर्च हक्काची रजा म्हणून नोंदवला
+                    }
                 }
                 
+                dayCounter++;
                 current.setDate(current.getDate() + 1);
             }
         }
     }
 });
 
-// ३. स्क्रीनवरील ६ नंबरचा 'इतर सर्व रजा अहवाल' तक्ता रेंडर (Render) करणे
+// ३. ६ नंबरचा 'इतर सर्व रजा अहवाल' स्क्रीनवर दाखवणे
 let leaveTbody = document.querySelector("#allLeavesMonthlyTable tbody"); 
 if (leaveTbody) {
     leaveTbody.innerHTML = "";
@@ -1307,7 +1343,7 @@ if (leaveTbody) {
                 <td style="color:#1a73e8; font-weight:bold;">${leaveMap[month]["हक्काची रजा"]} दिवस</td>
                 <td style="color:#e65100; font-weight:bold;">${leaveMap[month]["वैद्यकीय रजा"]} दिवस</td>
                 <td style="color:#00796b; font-weight:bold;">${leaveMap[month]["विशेष रजा"]} दिवस</td>
-                <td style="text-align:left; padding-left:15px; font-weight:bold; color:#2e7d32;">अद्ययावत (Updated)</td>
+                <td style="text-align:left; padding-left:15px; color:#2e7d32; font-weight:bold;">अद्ययावत (Updated)</td>
             `;
             totalElSum += leaveMap[month]["हक्काची रजा"]; 
             totalMlSum += leaveMap[month]["वैद्यकीय रजा"]; 
