@@ -65,7 +65,7 @@ tr:nth-child(even) { background-color: #f9f9f9; }
 
         <div class="result-card" id="fixationRuleMsg" style="display: none;"></div>
 
-        <h3>📋 महिनावार सविस्तर फरक तक्ता (मूळ सर्व कॉलम्स जसेच्या तसे ✎)</h3>
+        <h3>📋 महिनावार सविस्तर फरक तक्ता (दुरुस्त केलेल्या वजाबाकीसह ✎)</h3>
         <div style="overflow-x: auto;">
             <table id="fixationStatementTable">
                 <thead>
@@ -118,6 +118,7 @@ window.onload = function() {
 };
 
 function parseDMY(str) { if(!str) return null; let parts = str.split("/"); return new Date(parts[2], parts[1] - 1, parts[0]); }
+function switchTab(tabId) { }
 
 function initializeFixationDropdowns() {
     let drSel = document.getElementById('fix_drawn_level'); 
@@ -204,11 +205,13 @@ function calculateAutomaticFixationDiff() {
     recalculateMathLogic();
 }
 
+// ----------------- वजाबाकीचे नियम बदलून इतर कॉलम्सप्रमाणे सरळ केले (FIXED) -----------------
 function recalculateMathLogic() {
     calculatedStatements.forEach(item => {
         let daysInMonth = item.actualDays; let pDays = item.presentDays;
         let curYear = 2000 + parseInt(item.month.split("-")[1]);
 
+        // DUE CALCULATIONS[cite: 1]
         item.duBasic = Math.round((item.duBasicNominal / daysInMonth) * pDays);
         item.duDa = Math.round(item.duBasic * item.daRate); 
         item.duHra = Math.round(item.duBasic * item.hraRate); 
@@ -216,6 +219,7 @@ function recalculateMathLogic() {
         item.duChs = (curYear === 2020 && (item.month.includes("MAY") || item.month.includes("JUN") || item.month.includes("JUL"))) ? 0 : Math.round((item.duBasic + item.duDa) * 0.01); 
         item.duTotal = item.duBasic + item.duDa + item.duHra;
 
+        // DRAWN CALCULATIONS[cite: 1]
         item.drBasic = Math.round((item.drBasicNominal / daysInMonth) * pDays);
         item.drDa = Math.round(item.drBasic * item.daRate); 
         item.drHra = Math.round(item.drBasic * item.hraRate); 
@@ -223,11 +227,14 @@ function recalculateMathLogic() {
         item.drChs = (curYear === 2020 && (item.month.includes("MAY") || item.month.includes("JUN") || item.month.includes("JUL"))) ? 0 : Math.round((item.drBasic + item.drDa) * 0.01); 
         item.drTotal = item.drBasic + item.drDa + item.drHra;
 
+        // DIFFERENCE CALCULATIONS: आता CPS आणि CHS देखील सरळ DUE - DRAWN असे वजा होतील[cite: 1]
         item.diffBasic = item.duBasic - item.drBasic; 
         item.diffDa = item.duDa - item.drDa; 
         item.diffHra = item.duHra - item.drHra; 
-        item.diffCps = item.duCps - item.drCps; 
-        item.diffChs = item.diffChs - item.drChs; 
+        item.diffCps = item.duCps - item.drCps; // 🌟 सरळ साधी वजाबाकी फिक्स केली 🌟
+        item.diffChs = item.duChs - item.drChs; // 🌟 सरळ साधी वजाबाकी फिक्स केली 🌟
+        
+        // Total Difference चा मूळ नियम जसाच्या तसा[cite: 1]
         item.diffTotal = (item.diffBasic + item.diffDa + item.diffHra) - (item.diffCps + item.diffChs);
     });
     renderStatementTable();
@@ -249,7 +256,8 @@ function renderStatementTable() {
             <td>${(item.daRate * 100).toFixed(0)}%</td>
             <td>${item.duBasic}</td><td>${item.duDa}</td><td>${item.duHra}</td><td>${item.duCps}</td><td>${item.duChs}</td><td style="background:#e8f5e9;">${item.duTotal}</td>
             <td>${item.drBasic}</td><td>${item.drDa}</td><td>${item.drHra}</td><td>${item.drCps}</td><td>${item.drChs}</td><td style="background:#f5f5f5;">${item.drTotal}</td>
-            <td style="color:blue; font-weight:bold;">${item.diffBasic}</td><td style="color:blue; font-weight:bold;">${item.diffDa}</td><td style="color:blue; font-weight:bold;">${item.diffHra}</td><td style="color:red;">${item.diffCps}</td><td style="color:red;">${item.diffChs}</td>
+            <td style="color:blue; font-weight:bold;">${item.diffBasic}</td><td style="color:blue; font-weight:bold;">${item.diffDa}</td><td style="color:blue; font-weight:bold;">${item.diffHra}</td>
+            <td style="color:blue; font-weight:bold;">${item.diffCps}</td><td style="color:blue; font-weight:bold;">${item.diffChs}</td>
             <td style="font-weight:bold; background:#e1bee7; color:#4a148c;">${item.diffTotal}</td>
         `;
         tDuB+=item.duBasic; tDuD+=item.duDa; tDuH+=item.duHra; tDuC+=item.duCps; tDuChs+=item.duChs; tDuT+=item.duTotal;
@@ -258,7 +266,7 @@ function renderStatementTable() {
     });
     
     let gRow = tbody.insertRow(); gRow.className = "grand-total-row";
-    gRow.innerHTML = `<td colspan="4"><strong>Grand Total</strong></td><td>${tDuB}</td><td>${tDuD}</td><td>${tDuH}</td><td>${tDuC}</td><td>${tDuChs}</td><td style="background:#c8e6c9;">${tDuT}</td><td>${tDrB}</td><td>${tDrD}</td><td>${tDrH}</td><td>${tDrC}</td><td>${tDrChs}</td><td style="background:#e0e0e0;">${tDrT}</td><td style="color:blue;">${tDiB}</td><td style="color:blue;">${tDiD}</td><td style="color:blue;">${tDiH}</td><td style="color:red;">${tDiC}</td><td style="color:red;">${tDiChs}</td><td style="font-weight:bold; background:#b39ddb; color:#4a148c;">रु. ${tDiT}/-</td>`;
+    gRow.innerHTML = `<td colspan="4"><strong>Grand Total</strong></td><td>${tDuB}</td><td>${tDuD}</td><td>${tDuH}</td><td>${tDuC}</td><td>${tDuChs}</td><td style="background:#c8e6c9;">${tDuT}</td><td>${tDrB}</td><td>${tDrD}</td><td>${tDrH}</td><td>${tDrC}</td><td>${tDrChs}</td><td style="background:#e0e0e0;">${tDrT}</td><td style="color:blue;">${tDiB}</td><td style="color:blue;">${tDiD}</td><td style="color:blue;">${tDiH}</td><td style="color:blue;">${tDiC}</td><td style="color:blue;">${tDiChs}</td><td style="font-weight:bold; background:#b39ddb; color:#4a148c;">रु. ${tDiT}/-</td>`;
 }
 
 function updateTableInline(index, value) {
@@ -266,11 +274,10 @@ function updateTableInline(index, value) {
     recalculateMathLogic();
 }
 
-// ----------------- पूर्ण २२ कॉलम्सह एक्सेल डाउनलोड फंक्शन (FIXED) -----------------
+// ----------------- संपूर्ण २२ कॉलम्सह एक्सेल डाउनलोड फंक्शन (FIXED & FULL) -----------------
 function downloadFixationStatementExcel() {
     if(calculatedStatements.length === 0){ alert("डेटा उपलब्ध नाही!"); return; }
     
-    // १. एक्सेलच्या सर्वात वरच्या ओळीत संपूर्ण हेडिंग तयार करणे
     let csv = "\uFEFFMonth,Actual Days,Present Days,D.A. %," +
               "DUE Basic,DUE D.A.,DUE H.R.A.,DUE CPS,DUE CHS,DUE Total," +
               "DRAWN Basic,DRAWN D.A.,DRAWN H.R.A.,DRAWN CPS,DRAWN CHS,DRAWN Total," +
@@ -280,7 +287,6 @@ function downloadFixationStatementExcel() {
     let tDrB=0, tDrD=0, tDrH=0, tDrC=0, tDrChs=0, tDrT=0; 
     let tDiB=0, tDiD=0, tDiH=0, tDiC=0, tDiChs=0, tDiT=0;
 
-    // २. प्रत्येक महिन्याचा संपूर्ण रो डेटा भरणे
     calculatedStatements.forEach(i => {
         csv += `${i.month},${i.actualDays},${i.presentDays},${(i.daRate * 100).toFixed(0)}%,` +
                `${i.duBasic},${i.duDa},${i.duHra},${i.duCps},${i.duChs},${i.duTotal},` +
@@ -292,7 +298,6 @@ function downloadFixationStatementExcel() {
         tDiB+=i.diffBasic; tDiD+=i.diffDa; tDiH+=i.diffHra; tDiC+=i.diffCps; tDiChs+=i.diffChs; tDiT+=i.diffTotal;
     });
 
-    // ३. एक्सेलच्या शेवटी Grand Total ओळ जोडणे
     csv += `Grand Total,,,,${tDuB},${tDuD},${tDuH},${tDuC},${tDuChs},${tDuT},${tDrB},${tDrD},${tDrH},${tDrC},${tDrChs},${tDrT},${tDiB},${tDiD},${tDiH},${tDiC},${tDiChs},${tDiT}\n`;
 
     let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
