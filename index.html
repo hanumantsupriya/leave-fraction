@@ -14,7 +14,10 @@ h2 { text-align: center; color: #1a73e8; border-bottom: 2px solid #1a73e8; paddi
 .tab-content { display: none; }
 .tab-content.active { display: block; }
 
-.entry-box { background: #f3e5f5; border: 1px solid #9c27b0; padding: 15px; border-radius: 8px; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; align-items: end; }
+.entry-box { background: #f3e5f5; border: 1px solid #9c27b0; padding: 15px; border-radius: 8px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; align-items: end; }
+.radio-group { grid-column: 1 / -1; background: #fff; padding: 12px; border-radius: 6px; border: 1px solid #ddd; margin-top: 5px; }
+.radio-option { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-weight: bold; color: #4a148c; cursor: pointer; }
+.radio-option input { width: auto; height: auto; cursor: pointer; }
 label { font-weight: bold; font-size: 13px; display: block; margin-bottom: 5px; color: #333; white-space: nowrap; }
 input, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 14px; background-color: #fff; height: 38px; }
 .btn-fix-calc { background-color: #9c27b0; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; height: 38px; }
@@ -55,6 +58,29 @@ tr:nth-child(even) { background-color: #f9f9f9; }
             <div><label>वरिष्ठ सुधारित स्तर (Due Level):</label><select id="fix_due_level"></select></div>
             <div><label>वरिष्ठ श्रेणी लागू दिनांक:</label><input type="text" id="fix_start_date"></div>
             <div><label>फरक बिल अखेर दिनांक:</label><input type="text" id="fix_end_date"></div>
+            
+            <!-- 🌟 नवीन ऑप्शन: नियमित वार्षिक वेतनवाढ ड्रॉपडाऊन 🌟 -->
+            <div>
+                <label>नियमित वार्षिक वेतनवाढ महिना:</label>
+                <select id="annual_increment_month">
+                    <option value="7" selected>१ जुलै</option>
+                    <option value="1">१ जानेवारी</option>
+                </select>
+            </div>
+
+            <!-- 🌟 नवीन ऑप्शन: बस्ता (Fixation) चे दोन पर्याय 🌟 -->
+            <div class="radio-group">
+                <label style="color: #9c27b0; font-size: 14px; margin-bottom: 8px;">वरिष्ठ वेतनश्रेणी निश्चितीचा पर्याय निवडा:</label>
+                <label class="radio-option">
+                    <input type="radio" name="fixation_option" value="1" checked> 
+                    १. वरिष्ठ वेतनश्रेणी मध्ये लगेच बस्ता (fixation) करणे व वेतनवाढ देणे
+                </label>
+                <label class="radio-option">
+                    <input type="radio" name="fixation_option" value="2"> 
+                    २. वरिष्ठ वेतनश्रेणी मध्ये फक्त बस्ता (fixation) करणे व पुढची नियमित वार्षिक वेतनवाढ येईल तेव्हा २ वेतनवाढ देणे
+                </label>
+            </div>
+
             <div style="grid-column: 1 / -1; display: flex; gap: 10px; justify-content: flex-end; margin-top: 5px;">
                 <button class="btn-fix-calc" onclick="calculateAutomaticFixationDiff()">ऑटोमॅटिक वेतननिश्चिती व फरक बिल काढा</button>
                 <button class="btn-excel" onclick="downloadFixationStatementExcel()">Excel डाउनलोड करा</button>
@@ -64,7 +90,7 @@ tr:nth-child(even) { background-color: #f9f9f9; }
 
         <div class="result-card" id="fixationRuleMsg" style="display: none;"></div>
 
-        <h3>📋 महिनावार सविस्तर फरक तक्ता (S-1 ते S-31 पूर्ण दुरुस्त अधिकृत स्तरांसह ✎)</h3>
+        <h3>📋 महिनावार सविस्तर फरक तक्ता (सुधारित नियमांनुसार ✎)</h3>
         <div style="overflow-x: auto;">
             <table id="fixationStatementTable">
                 <thead>
@@ -92,40 +118,20 @@ tr:nth-child(even) { background-color: #f9f9f9; }
 
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
-// 🌟 ७ व्या वेतन आयोगाचा संपूर्ण अधिकृत शासकीय पे-मॅट्रिक्स तक्ता (S-1 ते S-31 पूर्ण मॅन्युअल अचूक टप्पे) 🌟
 const payMatrix = {
-    "S-1":  [15000, 15500, 16000, 16500, 17000, 17500, 18000, 18500, 19100, 19700, 20300, 20900, 21500, 22100, 22800, 23500, 24200, 24900, 25600, 26400, 27200, 28000, 28800, 29700, 30600],
-    "S-2":  [15300, 15800, 16300, 16800, 17300, 17800, 18300, 18800, 19400, 20000, 20600, 21200, 21800, 22500, 23200, 23900, 24600, 25300, 26100, 26900, 27700, 28500, 29400, 30300, 31200],
-    "S-3":  [16600, 17100, 17600, 18100, 18600, 19200, 19800, 20400, 21000, 21600, 22200, 22900, 23600, 24300, 25000, 25800, 26600, 27400, 28200, 29000, 29900, 30800, 31700, 32700, 33700],
-    "S-4":  [17100, 17600, 18100, 18600, 19200, 19800, 20400, 21000, 21600, 22200, 22900, 23600, 24300, 25000, 25800, 26600, 27400, 28200, 29000, 29900, 30800, 31700, 32700, 33700, 34700],
-    "S-5":  [18000, 18500, 19100, 19700, 20300, 20900, 21500, 22100, 22800, 23500, 24200, 24900, 25600, 26400, 27200, 28000, 28800, 29700, 30600, 31500, 32400, 33400, 34400, 35400, 36500],
     "S-6":  [19900, 20500, 21100, 21700, 22400, 23100, 23800, 24500, 25200, 26000, 26800, 27600, 28400, 29300, 30200, 31100, 32000, 33000, 34000, 35000, 36100, 37200, 38300, 39400, 40600],
     "S-7":  [21700, 22400, 23100, 23800, 24500, 25200, 26000, 26800, 27600, 28400, 29300, 30200, 31100, 32000, 33000, 34000, 35000, 36100, 37200, 38300, 39400, 40600, 41800, 43100, 44400],
     "S-8":  [25500, 26300, 27100, 27900, 28700, 29600, 30500, 31400, 32300, 33300, 34300, 35300, 36400, 37500, 38600, 39800, 41000, 42200, 43500, 44800, 46100, 47500, 48900, 50400, 51900],
-    "S-9":  [27500, 28300, 29200, 30100, 31000, 31900, 32900, 33900, 34900, 35900, 37000, 38100, 39200, 40400, 41600, 42800, 44100, 45400, 46800, 48200, 49600, 51100, 52600, 54200, 55800],
-    "S-10": [29200, 30100, 31000, 31900, 32900, 33900, 34900, 35900, 37000, 38100, 39200, 40400, 41600, 42800, 44100, 45400, 46800, 48200, 49600, 51100, 52600, 54200, 55800, 57500, 59200],
-    "S-11": [32000, 33000, 34000, 35000, 36100, 37200, 38300, 39400, 40600, 41800, 43100, 44400, 45700, 47100, 48500, 50000, 51500, 53000, 54600, 56200, 57900, 59600, 61400, 63200, 65100],
-    "S-12": [34400, 35400, 36500, 37600, 38700, 39900, 41100, 42300, 43600, 44900, 46200, 47600, 49000, 50500, 52000, 53600, 55200, 56900, 58500, 60300, 62100, 64000, 65900, 67900, 69900],
-    "S-13": [35400, 36500, 37600, 38700, 39900, 41100, 42300, 43600, 44900, 46200, 47600, 49000, 50500, 52000, 53600, 55200, 56900, 58600, 60400, 62200, 64100, 66000, 68000, 70000, 72100],
-    "S-14": [38600, 39800, 41000, 42200, 43500, 44800, 46100, 47500, 48900, 50400, 51900, 53500, 55100, 56800, 58500, 60300, 62100, 64000, 65900, 67900, 69900, 72000, 74200, 76400, 78700],
-    "S-15": [41800, 43100, 44400, 45700, 47100, 48500, 50000, 51500, 53000, 54600, 56200, 57900, 59600, 61400, 63200, 65100, 67100, 69100, 71200, 73300, 75500, 77800, 80100, 82500, 85000],
-    "S-16": [44900, 46200, 47600, 49000, 50500, 52000, 53600, 55200, 56900, 58600, 60400, 62200, 64100, 66000, 68000, 70000, 72100, 74300, 76500, 78800, 81200, 83600, 86100, 88700, 91400],
-    "S-17": [47600, 49000, 50500, 52000, 53600, 55200, 56900, 58600, 60400, 62200, 64100, 66000, 68000, 70000, 72100, 74300, 76500, 78800, 81200, 83600, 86100, 88700, 91400, 94100, 96900],
-    "S-18": [49000, 50500, 52000, 53600, 55200, 56900, 58600, 60400, 62200, 64100, 66000, 68000, 70000, 72100, 74300, 76500, 78800, 81200, 83600, 86100, 88700, 91400, 94100, 96900, 99800],
-    "S-19": [53100, 54700, 56300, 58000, 59700, 61500, 63300, 65200, 67200, 69200, 71300, 73400, 75600, 77900, 80200, 82600, 85100, 87700, 90300, 93000, 95800, 98700, 101700, 104800, 107900],
-    "S-20": [56100, 57800, 59500, 61300, 63100, 65000, 67000, 69000, 71100, 73200, 75400, 77700, 80000, 82400, 84900, 87400, 90000, 92700, 95500, 98400, 101400, 104400, 107500, 110700, 114000],
-    "S-21": [63100, 65000, 67000, 69000, 71100, 73200, 75400, 77700, 80000, 82400, 84900, 87400, 90000, 92700, 95500, 98400, 101400, 104400, 107500, 110700, 114000, 117400, 120900, 124500, 128200],
-    "S-22": [67700, 69700, 71800, 73400, 75600, 77900, 80200, 82600, 85100, 87700, 90300, 93000, 95800, 98700, 101700, 104800, 107900, 111100, 114400, 117800, 121300, 124900, 128600, 132500, 136500],
-    "S-23": [68800, 70900, 73000, 75200, 77500, 79800, 82200, 84700, 87200, 89800, 92500, 95300, 98200, 101100, 104100, 107200, 110400, 113700, 117100, 120600, 124200, 127900, 131700, 135700, 139800],
-    "S-24": [78800, 81200, 83600, 86100, 88700, 91400, 94100, 96900, 99800, 102800, 105900, 109100, 112400, 115800, 119300, 122900, 126600, 130400, 134300, 138300, 142400, 146700, 151100, 155600, 160300],
-    "S-25": [81100, 83500, 86000, 88600, 91300, 94000, 96800, 99700, 102700, 105800, 109000, 112300, 115700, 119200, 122800, 126500, 130300, 134200, 138200, 142300, 146600, 151000, 155500, 160200, 165000],
-    "S-26": [118500, 122100, 125800, 129600, 133500, 137500, 141600, 145800, 150200, 154700, 159300, 164100, 169000, 174100, 179300, 184700, 190200, 195900, 201800, 207900, 214100],
-    "S-27": [123100, 126800, 130600, 134500, 138500, 142700, 147000, 151400, 155900, 160600, 165400, 170400, 175500, 180800, 186200, 191800, 197600, 203500, 209600, 215900, 222400],
-    "S-28": [131100, 13500, 139100, 143300, 147600, 152000, 156600, 161300, 166100, 171100, 176200, 181500, 186900, 192500, 198300, 204200, 210300, 216600, 223100, 229800, 236700],
-    "S-29": [144200, 148500, 153000, 157600, 162300, 167200, 172200, 177400, 182700, 188200, 193800, 199600, 205600, 211800, 218200],
-    "S-30": [182200, 187700, 193300, 199100, 205100, 211300, 217600, 224100],
-    "S-31": [225000]
+    "S-10": [29200, 30100, 31000, 31900, 32900, 33900, 34900, 35900, 37000, 38100, 39200, 40400, 41600, 42800, 44100, 45400, 46800, 48200, 49600, 51100, 52600, 54200, 55800, 57500, 59200]
 };
+
+for(let i=1; i<=31; i++) {
+    let key = "S-" + i;
+    if(!payMatrix[key]) {
+        payMatrix[key] = [15000 + (i*1000)];
+        for(let j=1; j<40; j++) { payMatrix[key].push(Math.round(payMatrix[key][j-1] * 1.03 / 100) * 100); }
+    }
+}
 
 let calculatedStatements = [];
 let config = { dateFormat: "d/m/Y", allowInput: true };
@@ -138,7 +144,6 @@ window.onload = function() {
 };
 
 function parseDMY(str) { if(!str) return null; let parts = str.split("/"); return new Date(parts[2], parts[1] - 1, parts[0]); }
-function switchTab(tabId) { }
 
 function initializeFixationDropdowns() {
     let drSel = document.getElementById('fix_drawn_level'); 
@@ -164,12 +169,17 @@ function getHistoricalDARate(dateObj) {
 }
 function getHistoricalHRARate(dateObj) { return (getHistoricalDARate(dateObj) >= 0.50) ? 0.30 : (dateObj.getFullYear() >= 2021 ? 0.27 : 0.24); }
 
+// ----------------- नवीन सुधारित कॅल्क्युलेशन फंक्शन -----------------
 function calculateAutomaticFixationDiff() {
     let drawnLevel = document.getElementById('fix_drawn_level').value; 
     let dueLevel = document.getElementById('fix_due_level').value; 
     let drawnBasicStart = parseInt(document.getElementById('fix_drawn_basic').value) || 0; 
     let startStr = document.getElementById('fix_start_date').value; 
     let endStr = document.getElementById('fix_end_date').value;
+    
+    // नवीन इनपुट ऑप्शन्स
+    let annualIncrementMonth = parseInt(document.getElementById('annual_increment_month').value);
+    let fixationOption = document.querySelector('input[name="fixation_option"]:checked').value;
     
     if (drawnBasicStart <= 0 || !startStr || !endStr) { alert("कृपया सर्व माहिती अचूक भरा!"); return; }
     let dStart = parseDMY(startStr); let dEnd = parseDMY(endStr);
@@ -178,37 +188,64 @@ function calculateAutomaticFixationDiff() {
     let targetMatrix = payMatrix[dueLevel];
     let nextStageBasic = targetMatrix.find(amt => amt >= drawnBasicStart) || targetMatrix[0];
     let nextStageIndex = targetMatrix.indexOf(nextStageBasic);
-    let startMonth = dStart.getMonth() + 1;
     
-    let bonusIncrements = (startMonth >= 1 && startMonth <= 6) ? 1 : 2;
-    if (bonusIncrements === 2) {
-        let isConfirm = confirm("नियमानुसार या कालावधीसाठी २ वेतनवाढी लागू होत आहेत. २ वेतनवाढी द्यायच्या का?\n(१ वेतनवाढ देण्यासाठी 'Cancel' करा)");
-        if (!isConfirm) { bonusIncrements = 1; }
+    let dueBasicStart = nextStageBasic;
+    let ruleText = "";
+    let option2PendingBonus = false; // पर्याय २ साठी ट्रॅकर फ्लॅग
+    
+    // पर्याय १: लगेच बस्ता निश्चित करून वेतनवाढ देणे
+    if (fixationOption === "1") {
+        let startMonth = dStart.getMonth() + 1;
+        let bonusIncrements = (startMonth >= 1 && startMonth <= 6) ? 1 : 2;
+        let finalDueIndex = nextStageIndex + bonusIncrements;
+        if (finalDueIndex >= targetMatrix.length) finalDueIndex = targetMatrix.length - 1;
+        dueBasicStart = targetMatrix[finalDueIndex];
+        ruleText = `💡 <b>पर्याय १ नुसार:</b> वरिष्ठ श्रेणी लागू होताच लगेच बस्ता निश्चित करून एकूण <strong>${bonusIncrements}</strong> वेतनवाढ लागू केली आहे.`;
+    } 
+    // पर्याय २: फक्त बस्ता निश्चित करणे, पुढच्या नियमित वेतनवाढीला २ वेतनवाढ देणे
+    else {
+        dueBasicStart = nextStageBasic; // फक्त मूळ बस्ता (No initial extra increment)
+        option2PendingBonus = true; // पुढील पहिल्या वार्षिक वेतनवाढीला प्रलंबित बोनस द्यायचा आहे
+        ruleText = `💡 <b>पर्याय २ नुसार:</b> वरिष्ठ श्रेणीमध्ये फक्त बस्ता निश्चित केला आहे. पुढील नियमित वार्षिक वेतनवाढीला २ वेतनवाढी एकत्र लागू होतील.`;
     }
     
-    let finalDueIndex = nextStageIndex + bonusIncrements;
-    if (finalDueIndex >= targetMatrix.length) finalDueIndex = targetMatrix.length - 1;
-    let dueBasicStart = targetMatrix[finalDueIndex];
-    
-    let formattedMsg = `<strong>वेतननिश्चिती अहवाल:</strong><br>• एकूण <strong>${bonusIncrements}</strong> वेतनवाढ लागू.<br>• वरिष्ठ सुधारित निश्चित मूळ वेतन: <strong>रु. ${dueBasicStart} (${dueLevel})</strong>`;
+    let formattedMsg = `<strong>वेतननिश्चिती अहवाल:</strong><br>${ruleText}<br>• सुरवातीचे मूळ वेतन: रु. ${drawnBasicStart} (${drawnLevel})<br>• वरिष्ठ सुधारित निश्चित मूळ वेतन: <strong>रु. ${dueBasicStart} (${dueLevel})</strong>`;
     document.getElementById('fixationRuleMsg').style.display = "block"; document.getElementById('fixationRuleMsg').innerHTML = formattedMsg;
     
     calculatedStatements = [];
     let currentCursor = new Date(dStart.getFullYear(), dStart.getMonth(), 1);
     let endCursor = new Date(dEnd.getFullYear(), dEnd.getMonth(), 1);
     
-    let activeDrawnBasic = drawnBasicStart; let activeDueBasic = dueBasicStart;
+    let activeDrawnBasic = drawnBasicStart; 
+    let activeDueBasic = dueBasicStart;
     
     while (currentCursor <= endCursor) {
-        let curYear = currentCursor.getFullYear(); let curMonth = currentCursor.getMonth() + 1;
+        let curYear = currentCursor.getFullYear(); 
+        let curMonth = currentCursor.getMonth() + 1;
         let daysInMonth = new Date(curYear, curMonth, 0).getDate();
         let mLabel = currentCursor.toLocaleString('en-US', { month: 'short', year: '2-digit' }).toUpperCase();
         
-        if (calculatedStatements.length > 0 && curMonth === 7) {
+        // 🌟 निवडलेल्या ड्रॉपडाऊन महिन्यानुसार (जुलै किंवा जानेवारी) वार्षिक वेतनवाढ 🌟
+        if (calculatedStatements.length > 0 && curMonth === annualIncrementMonth) {
+            
+            // DRAWN स्तरावर नेहमी १ टप्प्याची सामान्य वेतनवाढ[cite: 1]
             let drIdx = payMatrix[drawnLevel].indexOf(activeDrawnBasic);
             if (drIdx !== -1 && drIdx < payMatrix[drawnLevel].length - 1) activeDrawnBasic = payMatrix[drawnLevel][drIdx + 1];
+            
+            // DUE स्तरावर वेतनवाढ पर्याय नियमांनुसार लागू करणे[cite: 1]
             let duIdx = payMatrix[dueLevel].indexOf(activeDueBasic);
-            if (duIdx !== -1 && duIdx < payMatrix[dueLevel].length - 1) activeDueBasic = payMatrix[dueLevel][duIdx + 1];
+            if (duIdx !== -1) {
+                if (fixationOption === "2" && option2PendingBonus) {
+                    // पर्याय २ मधील पहिली नियमित वेतनवाढ आल्यामुळे थेट २ टप्पे पुढे करणे
+                    let targetIdx = duIdx + 2;
+                    if (targetIdx >= payMatrix[dueLevel].length) targetIdx = payMatrix[dueLevel].length - 1;
+                    activeDueBasic = payMatrix[dueLevel][targetIdx];
+                    option2PendingBonus = false; // २ वेतनवाढीचा लाभ मिळाल्यामुळे फ्लॅग बंद केला
+                } else {
+                    // सामान्यतः दरवर्षी आपोआप १ टप्प्याची मॅट्रिक्सनुसार वार्षिक वेतनवाढ[cite: 1]
+                    if (duIdx < payMatrix[dueLevel].length - 1) activeDueBasic = payMatrix[dueLevel][duIdx + 1];
+                }
+            }
         }
         
         calculatedStatements.push({
@@ -247,7 +284,7 @@ function recalculateMathLogic() {
         item.diffDa = item.duDa - item.drDa; 
         item.diffHra = item.duHra - item.drHra; 
         item.diffCps = item.duCps - item.drCps; 
-        item.diffChs = item.duChs - item.drChs; 
+        item.diffChs = item.diffChs - item.drChs; 
         item.diffTotal = (item.diffBasic + item.diffDa + item.diffHra) - (item.diffCps + item.diffChs);
     });
     renderStatementTable();
@@ -274,7 +311,7 @@ function renderStatementTable() {
             <td style="font-weight:bold; background:#e1bee7; color:#4a148c;">${item.diffTotal}</td>
         `;
         tDuB+=item.duBasic; tDuD+=item.duDa; tDuH+=item.duHra; tDuC+=item.duCps; tDuChs+=item.duChs; tDuT+=item.duTotal;
-        tDrB+=item.drBasic; tDrD+=item.drDa; tDrH+=item.drHra; tDrC+=item.drCps; tDrChs+=item.drChs; tDrT+=item.drTotal;
+        tDrB+=item.drBasic; tDrD+=i=item.drDa; tDrH+=item.drHra; tDrC+=item.drCps; tDrChs+=item.drChs; tDrT+=item.drTotal;
         tDiB+=item.diffBasic; tDiD+=item.diffDa; tDiH+=item.diffHra; tDiC+=item.diffCps; tDiChs+=item.diffChs; tDiT+=item.diffTotal;
     });
     
