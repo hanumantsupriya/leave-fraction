@@ -14,7 +14,7 @@ h2 { text-align: center; color: #1a73e8; border-bottom: 2px solid #1a73e8; paddi
 .tab-content { display: none; }
 .tab-content.active { display: block; }
 
-.entry-box { background: #f3e5f5; border: 1px solid #9c27b0; padding: 15px; border-radius: 8px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; align-items: end; }
+.entry-box { background: #f3e5f5; border: 1px solid #9c27b0; padding: 15px; border-radius: 8px; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; align-items: end; }
 .radio-group { grid-column: 1 / -1; background: #fff; padding: 12px; border-radius: 6px; border: 1px solid #ddd; margin-top: 5px; }
 .radio-option { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-weight: bold; color: #4a148c; cursor: pointer; }
 .radio-option input { width: auto; height: auto; cursor: pointer; }
@@ -88,7 +88,7 @@ tr:nth-child(even) { background-color: #f9f9f9; }
 
         <div class="result-card" id="fixationRuleMsg" style="display: none;"></div>
 
-        <h3>📋 महिनावार सविस्तर फरक तक्ता (नवीन DA व HRA दरांसह ✎)</h3>
+        <h3>📋 महिनावार सविस्तर फरक तक्ता (२०१६ ते २०२६ च्या अचूक दरांसह ✎)</h3>
         <div style="overflow-x: auto;">
             <table id="fixationStatementTable">
                 <thead>
@@ -157,11 +157,14 @@ function initializeFixationDropdowns() {
     }
 }
 
-// 🌟 एक्सेल फाईल प्रमाणे अचूक अपडेट केलेले ऐतिहासिक DA रेट्स 🌟
+// 🌟 एक्सेल फाईल (da rate.xlsx) प्रमाणे २०१६ ते २०२६ चे अचूक DA दरांचे लॉजिक 🌟
 function getHistoricalDARate(dateObj) {
     let year = dateObj.getFullYear(); 
     let month = dateObj.getMonth() + 1;
     
+    if (year === 2016) return (month >= 7) ? 0.02 : 0.00;
+    if (year === 2017) return (month >= 7) ? 0.05 : 0.04;
+    if (year === 2018) return (month >= 7) ? 0.09 : 0.07;
     if (year === 2019) return (month >= 7) ? 0.17 : 0.12;
     if (year === 2020) return 0.17;
     if (year === 2021) return (month >= 7) ? 0.31 : 0.17;
@@ -169,19 +172,20 @@ function getHistoricalDARate(dateObj) {
     if (year === 2023) return (month >= 7) ? 0.46 : 0.42;
     if (year === 2024) return (month >= 7) ? 0.53 : 0.50;
     if (year === 2025) return (month >= 7) ? 0.58 : 0.55;
-    if (year === 2026) return 0.60;
-    return 0.60;
+    if (year >= 2026) return 0.60;
+    return 0.00;
 }
 
-// 🌟 एक्सेल फाईल प्रमाणे अचूक अपडेट केलेले ऐतिहासिक HRA रेट्स 🌟
+// 🌟 एक्सेल फाईल (da rate.xlsx) प्रमाणे २०१६ ते २०२६ चे अचूक HRA दरांचे लॉजिक 🌟
 function getHistoricalHRARate(dateObj) {
     let year = dateObj.getFullYear(); 
     let month = dateObj.getMonth() + 1;
     let ym = (year * 100) + month;
     
-    if (ym <= 202106) return 0.24; // जून २०२१ पर्यंत २४%
-    if (ym <= 202406) return 0.27; // जुलै २०२१ ते जून २०२४ पर्यंत २७%
-    return 0.30; // जुलै २०२४ पासून पुढे ३०%
+    if (ym < 201901) return 0.00;   // जानेवारी २०१९ पूर्वी ०% (एक्सेल प्रमाणे)
+    if (ym <= 202106) return 0.24;  // जानेवारी २०१९ ते जून २०२१ पर्यंत २४%
+    if (ym <= 202406) return 0.27;  // जुलै २०२१ ते जून २०२४ पर्यंत २७%
+    return 0.30;                    // जुलै २०२४ पासून पुढे ३०%
 }
 
 function calculateAutomaticFixationDiff() {
