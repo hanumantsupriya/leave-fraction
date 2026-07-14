@@ -235,7 +235,7 @@ function recalculateMathLogic() {
         item.diffChs = item.duChs - item.drChs; // 🌟 सरळ साधी वजाबाकी फिक्स केली 🌟
         
         // Total Difference चा मूळ नियम जसाच्या तसा[cite: 1]
-        item.diffTotal = (item.diffBasic + item.diffDa + item.diffHra) - (item.diffCps + item.diffChs);
+        item.diffTotal = (item.diffBasic + item.diffDa + item.diffHra + item.diffcps + item.diffchs)
     });
     renderStatementTable();
 }
