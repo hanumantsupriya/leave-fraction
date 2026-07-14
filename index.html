@@ -59,7 +59,6 @@ tr:nth-child(even) { background-color: #f9f9f9; }
             <div><label>वरिष्ठ श्रेणी लागू दिनांक:</label><input type="text" id="fix_start_date"></div>
             <div><label>फरक बिल अखेर दिनांक:</label><input type="text" id="fix_end_date"></div>
             
-            <!-- 🌟 नवीन ऑप्शन: नियमित वार्षिक वेतनवाढ ड्रॉपडाऊन 🌟 -->
             <div>
                 <label>नियमित वार्षिक वेतनवाढ महिना:</label>
                 <select id="annual_increment_month">
@@ -68,7 +67,6 @@ tr:nth-child(even) { background-color: #f9f9f9; }
                 </select>
             </div>
 
-            <!-- 🌟 नवीन ऑप्शन: बस्ता (Fixation) चे दोन पर्याय 🌟 -->
             <div class="radio-group">
                 <label style="color: #9c27b0; font-size: 14px; margin-bottom: 8px;">वरिष्ठ वेतनश्रेणी निश्चितीचा पर्याय निवडा:</label>
                 <label class="radio-option">
@@ -90,7 +88,7 @@ tr:nth-child(even) { background-color: #f9f9f9; }
 
         <div class="result-card" id="fixationRuleMsg" style="display: none;"></div>
 
-        <h3>📋 महिनावार सविस्तर फरक तक्ता (सुधारित नियमांनुसार ✎)</h3>
+        <h3>📋 महिनावार सविस्तर फरक तक्ता (नवीन DA व HRA दरांसह ✎)</h3>
         <div style="overflow-x: auto;">
             <table id="fixationStatementTable">
                 <thead>
@@ -150,7 +148,6 @@ function initializeFixationDropdowns() {
     let duSel = document.getElementById('fix_due_level'); 
     if(!drSel || !duSel) return;
     drSel.innerHTML = ""; duSel.innerHTML = "";
-    
     for(let i=1; i<=31; i++) {
         let opt1 = document.createElement('option'); opt1.value = "S-"+i; opt1.innerText = "S-"+i;
         let opt2 = document.createElement('option'); opt2.value = "S-"+i; opt2.innerText = "S-"+i;
@@ -160,16 +157,33 @@ function initializeFixationDropdowns() {
     }
 }
 
+// 🌟 एक्सेल फाईल प्रमाणे अचूक अपडेट केलेले ऐतिहासिक DA रेट्स 🌟
 function getHistoricalDARate(dateObj) {
-    let year = dateObj.getFullYear(); let month = dateObj.getMonth() + 1;
-    if (year <= 2019) return 0.12; if (year === 2020) return 0.17; 
-    if (year === 2021) return (month >= 7) ? 0.31 : 0.17; if (year === 2022) return (month >= 7) ? 0.38 : 0.34;
-    if (year === 2023) return (month >= 7) ? 0.46 : 0.42; if (year === 2024) return (month >= 7) ? 0.50 : 0.50;
-    if (year === 2025) return (month >= 7) ? 0.58 : 0.55; return 0.60;
+    let year = dateObj.getFullYear(); 
+    let month = dateObj.getMonth() + 1;
+    
+    if (year === 2019) return (month >= 7) ? 0.17 : 0.12;
+    if (year === 2020) return 0.17;
+    if (year === 2021) return (month >= 7) ? 0.31 : 0.17;
+    if (year === 2022) return (month >= 7) ? 0.38 : 0.34;
+    if (year === 2023) return (month >= 7) ? 0.46 : 0.42;
+    if (year === 2024) return (month >= 7) ? 0.53 : 0.50;
+    if (year === 2025) return (month >= 7) ? 0.58 : 0.55;
+    if (year === 2026) return 0.60;
+    return 0.60;
 }
-function getHistoricalHRARate(dateObj) { return (getHistoricalDARate(dateObj) >= 0.50) ? 0.30 : (dateObj.getFullYear() >= 2021 ? 0.27 : 0.24); }
 
-// ----------------- नवीन सुधारित कॅल्क्युलेशन फंक्शन -----------------
+// 🌟 एक्सेल फाईल प्रमाणे अचूक अपडेट केलेले ऐतिहासिक HRA रेट्स 🌟
+function getHistoricalHRARate(dateObj) {
+    let year = dateObj.getFullYear(); 
+    let month = dateObj.getMonth() + 1;
+    let ym = (year * 100) + month;
+    
+    if (ym <= 202106) return 0.24; // जून २०२१ पर्यंत २४%
+    if (ym <= 202406) return 0.27; // जुलै २०२१ ते जून २०२४ पर्यंत २७%
+    return 0.30; // जुलै २०२४ पासून पुढे ३०%
+}
+
 function calculateAutomaticFixationDiff() {
     let drawnLevel = document.getElementById('fix_drawn_level').value; 
     let dueLevel = document.getElementById('fix_due_level').value; 
@@ -177,7 +191,6 @@ function calculateAutomaticFixationDiff() {
     let startStr = document.getElementById('fix_start_date').value; 
     let endStr = document.getElementById('fix_end_date').value;
     
-    // नवीन इनपुट ऑप्शन्स
     let annualIncrementMonth = parseInt(document.getElementById('annual_increment_month').value);
     let fixationOption = document.querySelector('input[name="fixation_option"]:checked').value;
     
@@ -191,9 +204,8 @@ function calculateAutomaticFixationDiff() {
     
     let dueBasicStart = nextStageBasic;
     let ruleText = "";
-    let option2PendingBonus = false; // पर्याय २ साठी ट्रॅकर फ्लॅग
+    let option2PendingBonus = false;
     
-    // पर्याय १: लगेच बस्ता निश्चित करून वेतनवाढ देणे
     if (fixationOption === "1") {
         let startMonth = dStart.getMonth() + 1;
         let bonusIncrements = (startMonth >= 1 && startMonth <= 6) ? 1 : 2;
@@ -201,11 +213,9 @@ function calculateAutomaticFixationDiff() {
         if (finalDueIndex >= targetMatrix.length) finalDueIndex = targetMatrix.length - 1;
         dueBasicStart = targetMatrix[finalDueIndex];
         ruleText = `💡 <b>पर्याय १ नुसार:</b> वरिष्ठ श्रेणी लागू होताच लगेच बस्ता निश्चित करून एकूण <strong>${bonusIncrements}</strong> वेतनवाढ लागू केली आहे.`;
-    } 
-    // पर्याय २: फक्त बस्ता निश्चित करणे, पुढच्या नियमित वेतनवाढीला २ वेतनवाढ देणे
-    else {
-        dueBasicStart = nextStageBasic; // फक्त मूळ बस्ता (No initial extra increment)
-        option2PendingBonus = true; // पुढील पहिल्या वार्षिक वेतनवाढीला प्रलंबित बोनस द्यायचा आहे
+    } else {
+        dueBasicStart = nextStageBasic;
+        option2PendingBonus = true;
         ruleText = `💡 <b>पर्याय २ नुसार:</b> वरिष्ठ श्रेणीमध्ये फक्त बस्ता निश्चित केला आहे. पुढील नियमित वार्षिक वेतनवाढीला २ वेतनवाढी एकत्र लागू होतील.`;
     }
     
@@ -216,33 +226,25 @@ function calculateAutomaticFixationDiff() {
     let currentCursor = new Date(dStart.getFullYear(), dStart.getMonth(), 1);
     let endCursor = new Date(dEnd.getFullYear(), dEnd.getMonth(), 1);
     
-    let activeDrawnBasic = drawnBasicStart; 
-    let activeDueBasic = dueBasicStart;
+    let activeDrawnBasic = drawnBasicStart; let activeDueBasic = dueBasicStart;
     
     while (currentCursor <= endCursor) {
-        let curYear = currentCursor.getFullYear(); 
-        let curMonth = currentCursor.getMonth() + 1;
+        let curYear = currentCursor.getFullYear(); let curMonth = currentCursor.getMonth() + 1;
         let daysInMonth = new Date(curYear, curMonth, 0).getDate();
         let mLabel = currentCursor.toLocaleString('en-US', { month: 'short', year: '2-digit' }).toUpperCase();
         
-        // 🌟 निवडलेल्या ड्रॉपडाऊन महिन्यानुसार (जुलै किंवा जानेवारी) वार्षिक वेतनवाढ 🌟
         if (calculatedStatements.length > 0 && curMonth === annualIncrementMonth) {
-            
-            // DRAWN स्तरावर नेहमी १ टप्प्याची सामान्य वेतनवाढ[cite: 1]
             let drIdx = payMatrix[drawnLevel].indexOf(activeDrawnBasic);
             if (drIdx !== -1 && drIdx < payMatrix[drawnLevel].length - 1) activeDrawnBasic = payMatrix[drawnLevel][drIdx + 1];
             
-            // DUE स्तरावर वेतनवाढ पर्याय नियमांनुसार लागू करणे[cite: 1]
             let duIdx = payMatrix[dueLevel].indexOf(activeDueBasic);
             if (duIdx !== -1) {
                 if (fixationOption === "2" && option2PendingBonus) {
-                    // पर्याय २ मधील पहिली नियमित वेतनवाढ आल्यामुळे थेट २ टप्पे पुढे करणे
                     let targetIdx = duIdx + 2;
                     if (targetIdx >= payMatrix[dueLevel].length) targetIdx = payMatrix[dueLevel].length - 1;
                     activeDueBasic = payMatrix[dueLevel][targetIdx];
-                    option2PendingBonus = false; // २ वेतनवाढीचा लाभ मिळाल्यामुळे फ्लॅग बंद केला
+                    option2PendingBonus = false;
                 } else {
-                    // सामान्यतः दरवर्षी आपोआप १ टप्प्याची मॅट्रिक्सनुसार वार्षिक वेतनवाढ[cite: 1]
                     if (duIdx < payMatrix[dueLevel].length - 1) activeDueBasic = payMatrix[dueLevel][duIdx + 1];
                 }
             }
@@ -284,7 +286,7 @@ function recalculateMathLogic() {
         item.diffDa = item.duDa - item.drDa; 
         item.diffHra = item.duHra - item.drHra; 
         item.diffCps = item.duCps - item.drCps; 
-        item.diffChs = item.diffChs - item.drChs; 
+        item.diffChs = item.duChs - item.drChs; 
         item.diffTotal = (item.diffBasic + item.diffDa + item.diffHra) - (item.diffCps + item.diffChs);
     });
     renderStatementTable();
@@ -311,7 +313,7 @@ function renderStatementTable() {
             <td style="font-weight:bold; background:#e1bee7; color:#4a148c;">${item.diffTotal}</td>
         `;
         tDuB+=item.duBasic; tDuD+=item.duDa; tDuH+=item.duHra; tDuC+=item.duCps; tDuChs+=item.duChs; tDuT+=item.duTotal;
-        tDrB+=item.drBasic; tDrD+=i=item.drDa; tDrH+=item.drHra; tDrC+=item.drCps; tDrChs+=item.drChs; tDrT+=item.drTotal;
+        tDrB+=item.drBasic; tDrD+=item.drDa; tDrH+=item.drHra; tDrC+=item.drCps; tDrChs+=item.drChs; tDrT+=item.drTotal;
         tDiB+=item.diffBasic; tDiD+=item.diffDa; tDiH+=item.diffHra; tDiC+=item.diffCps; tDiChs+=item.diffChs; tDiT+=item.diffTotal;
     });
     
