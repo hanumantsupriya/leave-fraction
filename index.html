@@ -1852,25 +1852,32 @@ function calculateAutomaticFixationDiff() {
     recalculateVolumeFiveMathLogic();
 }
 
-function recalculateVolumeFiveMathLogic() {
+// ----------------- मुख्य प्रगत व अचूक मॅथ लॉजिक (FIXED) -----------------
+function recalculateMathLogic() {
     calculatedStatements.forEach(item => {
         let daysInMonth = item.actualDays; let pDays = item.presentDays;
-        let curYear = 2000 + parseInt(item.month.split("-")[1]);
 
+        // DUE CALCULATIONS
         item.duBasic = Math.round((item.duBasicNominal / daysInMonth) * pDays);
         item.duDa = Math.round(item.duBasic * item.daRate); 
         item.duHra = Math.round(item.duBasic * item.hraRate); 
         item.duCps = Math.round((item.duBasic + item.duDa) * 0.10); 
-        item.duChs = (curYear === 2020 && (item.month.includes("MAY") || item.month.includes("JUN") || item.month.includes("JUL"))) ? 0 : Math.round((item.duBasic + item.duDa) * 0.01); 
+        
+        // 🌟 DUE साठी सुधारित अचूक २०२० CHS 0 फॉर्म्युला 🌟
+        item.duChs = (item.yearNum === 2020 && (item.monthNum === 5 || item.monthNum === 6 || item.monthNum === 7)) ? 0 : Math.round((item.duBasic + item.duDa) * 0.01); 
         item.duTotal = item.duBasic + item.duDa + item.duHra;
 
+        // DRAWN CALCULATIONS[cite: 1]
         item.drBasic = Math.round((item.drBasicNominal / daysInMonth) * pDays);
         item.drDa = Math.round(item.drBasic * item.daRate); 
         item.drHra = Math.round(item.drBasic * item.hraRate); 
         item.drCps = Math.round((item.drBasic + item.drDa) * 0.10); 
-        item.drChs = (curYear === 2020 && (item.month.includes("MAY") || item.month.includes("JUN") || item.month.includes("JUL"))) ? 0 : Math.round((item.drBasic + item.drDa) * 0.01); 
+        
+        // 🌟 DRAWN साठी सुधारित अचूक २०२० CHS 0 फॉर्म्युला 🌟
+        item.drChs = (item.yearNum === 2020 && (item.monthNum === 5 || item.monthNum === 6 || item.monthNum === 7)) ? 0 : Math.round((item.drBasic + item.drDa) * 0.01); 
         item.drTotal = item.drBasic + item.drDa + item.drHra;
 
+        // DIFFERENCE CALCULATIONS[cite: 1]
         item.diffBasic = item.duBasic - item.drBasic; 
         item.diffDa = item.duDa - item.drDa; 
         item.diffHra = item.duHra - item.drHra; 
