@@ -1898,27 +1898,28 @@ function renderStatementTable() {
 
     calculatedStatements.forEach((item, idx) => {
         let row = tbody.insertRow();
-        row.innerHTML = '<td><strong>' + item.month + '</strong></td><td>' + item.actualDays + '</td>' +
-            '<td><input type="number" value="' + item.presentDays + '" style="width:75px; text-align:center; height:25px;" oninput="updateTableInline(' + idx + ', this.value)"></td>' +
-            '<td>' + (item.daRate * 100).toFixed(0) + '%</td>' +
-            '<td>' + item.duBasic + '</td><td>' + item.duDa + '</td><td>' + item.duHra + '</td><td>' + item.duCps + '</td><td>' + item.duChs + '</td><td style="background:#e8f5e9;">' + item.duTotal + '</td>' +
-            '<td>' + item.drBasic + '</td><td>' + item.drDa + '</td><td>' + item.drHra + '</td><td>' + item.drCps + '</td><td>' + item.drChs + '</td><td style="background:#f5f5f5;">' + item.drTotal + '</td>' +
-            '<td style="color:blue; font-weight:bold;">' + item.diffBasic + '</td><td style="color:blue; font-weight:bold;">' + item.diffDa + '</td><td style="color:blue; font-weight:bold;">' + item.diffHra + '</td>' +
-            '<td style="color:blue; font-weight:bold;">' + item.diffCps + '</td><td style="color:blue; font-weight:bold;">' + item.diffChs + '</td>' +
-            '<td style="font-weight:bold; background:#e1bee7; color:#4a148c;">' + item.diffTotal + '</td>';
-        
+        row.innerHTML = `
+            <td><strong>${item.month}</strong></td><td>${item.actualDays}</td>
+            <td><input type="number" value="${item.presentDays}" style="width:75px; text-align:center; height:25px;" oninput="updateTableInline(${idx}, this.value)"></td>
+            <td>${(item.daRate * 100).toFixed(0)}%</td>
+            <td>${item.duBasic}</td><td>${item.duDa}</td><td>${item.duHra}</td><td>${item.duCps}</td><td>${item.duChs}</td><td style="background:#e8f5e9;">${item.duTotal}</td>
+            <td>${item.drBasic}</td><td>${item.drDa}</td><td>${item.drHra}</td><td>${item.drCps}</td><td>${item.drChs}</td><td style="background:#f5f5f5;">${item.drTotal}</td>
+            <td style="color:blue; font-weight:bold;">${item.diffBasic}</td><td style="color:blue; font-weight:bold;">${item.diffDa}</td><td style="color:blue; font-weight:bold;">${item.diffHra}</td>
+            <td style="color:blue; font-weight:bold;">${item.diffCps}</td><td style="color:blue; font-weight:bold;">${item.diffChs}</td>
+            <td style="font-weight:bold; background:#e1bee7; color:#4a148c;">${item.diffTotal}</td>
+        `;
         tDuB+=item.duBasic; tDuD+=item.duDa; tDuH+=item.duHra; tDuC+=item.duCps; tDuChs+=item.duChs; tDuT+=item.duTotal;
         tDrB+=item.drBasic; tDrD+=item.drDa; tDrH+=item.drHra; tDrC+=item.drCps; tDrChs+=item.drChs; tDrT+=item.drTotal;
         tDiB+=item.diffBasic; tDiD+=item.diffDa; tDiH+=item.diffHra; tDiC+=item.diffCps; tDiChs+=item.diffChs; tDiT+=item.diffTotal;
     });
     
     let gRow = tbody.insertRow(); gRow.className = "grand-total-row";
-    gRow.innerHTML = '<td colspan="4"><strong>Grand Total</strong></td><td>' + tDuB + '</td><td>' + tDuD + '</td><td>' + tDuH + '</td><td>' + tDuC + '</td><td>' + tDuChs + '</td><td style="background:#c8e6c9;">' + tDuT + '</td><td>' + tDrB + '</td><td>' + tDrD + '</td><td>' + tDrH + '</td><td>' + tDrC + '</td><td>' + tDrChs + '</td><td style="background:#e0e0e0;">' + tDrT + '</td><td style="color:blue;">' + tDiB + '</td><td style="color:blue;">' + tDiD + '</td><td style="color:blue;">' + tDiH + '</td><td style="color:blue;">' + tDiC + '</td><td style="color:blue;">' + tDiChs + '</td><td style="font-weight:bold; background:#b39ddb; color:#4a148c;">रु. ' + tDiT + '/-</td>';
+    gRow.innerHTML = `<td colspan="4"><strong>Grand Total</strong></td><td>${tDuB}</td><td>${tDuD}</td><td>${tDuH}</td><td>${tDuC}</td><td>${tDuChs}</td><td style="background:#c8e6c9;">${tDuT}</td><td>${tDrB}</td><td>${tDrD}</td><td>${tDrH}</td><td>${tDrC}</td><td>${tDrChs}</td><td style="background:#e0e0e0;">${tDrT}</td><td style="color:blue;">${tDiB}</td><td style="color:blue;">${tDiD}</td><td style="color:blue;">${tDiH}</td><td style="color:blue;">${tDiC}</td><td style="color:blue;">${tDiChs}</td><td style="font-weight:bold; background:#b39ddb; color:#4a148c;">रु. ${tDiT}/-</td>`;
 }
 
 function updateTableInline(index, value) {
     calculatedStatements[index].presentDays = parseFloat(value) || 0;
-    recalculateVolumeFiveMathLogic();
+    recalculateMathLogic();
 }
 
 function downloadFixationStatementExcel() {
@@ -1933,17 +1934,17 @@ function downloadFixationStatementExcel() {
     let tDiB=0, tDiD=0, tDiH=0, tDiC=0, tDiChs=0, tDiT=0;
 
     calculatedStatements.forEach(i => {
-        csv += i.month + ',' + i.actualDays + ',' + i.presentDays + ',' + (i.daRate * 100).toFixed(0) + '%,' +
-               i.duBasic + ',' + i.duDa + ',' + i.duHra + ',' + i.duCps + ',' + i.duChs + ',' + i.duTotal + ',' +
-               i.drBasic + ',' + i.drDa + ',' + i.drHra + ',' + i.drCps + ',' + i.drChs + ',' + i.drTotal + ',' +
-               i.diffBasic + ',' + i.diffDa + ',' + i.diffHra + ',' + i.diffCps + ',' + i.diffChs + ',' + i.diffTotal + '\n';
+        csv += `${i.month},${i.actualDays},${i.presentDays},${(i.daRate * 100).toFixed(0)}%,` +
+               `${i.duBasic},${i.duDa},${i.duHra},${i.duCps},${i.duChs},${i.duTotal},` +
+               `${i.drBasic},${i.drDa},${i.drHra},${i.drCps},${i.drChs},${i.drTotal},` +
+               `${i.diffBasic},${i.diffDa},${i.diffHra},${i.diffCps},${i.diffChs},${i.diffTotal}\n`;
                
         tDuB+=i.duBasic; tDuD+=i.duDa; tDuH+=i.duHra; tDuC+=i.duCps; tDuChs+=i.duChs; tDuT+=i.duTotal;
         tDrB+=i.drBasic; tDrD+=i.drDa; tDrH+=i.drHra; tDrC+=i.drCps; tDrChs+=i.drChs; tDrT+=i.drTotal;
         tDiB+=i.diffBasic; tDiD+=i.diffDa; tDiH+=i.diffHra; tDiC+=i.diffCps; tDiChs+=i.diffChs; tDiT+=i.diffTotal;
     });
 
-    csv += 'Grand Total,,,,' + tDuB + ',' + tDuD + ',' + tDuH + ',' + tDuC + ',' + tDuChs + ',' + tDuT + ',' + tDrB + ',' + tDrD + ',' + tDrH + ',' + tDrC + ',' + tDrChs + ',' + tDrT + ',' + tDiB + ',' + tDiD + ',' + tDiH + ',' + tDiC + ',' + tDiChs + ',' + tDiT + '\n';
+    csv += `Grand Total,,,,${tDuB},${tDuD},${tDuH},${tDuC},${tDuChs},${tDuT},${tDrB},${tDrD},${tDrH},${tDrC},${tDrChs},${tDrT},${tDiB},${tDiD},${tDiH},${tDiC},${tDiChs},${tDiT}\n`;
 
     let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     let link = document.createElement("a"); link.href = URL.createObjectURL(blob);
