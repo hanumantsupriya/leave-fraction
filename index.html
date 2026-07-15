@@ -85,7 +85,7 @@ tr:nth-child(even) { background-color: #f9f9f9; }
     <!-- कर्मचारी डेटाबेस निवड -->
     <div class="employee-select-box">
         <div style="flex: 1;">
-            <label style="color:#2e7d32;">👤 कर्मचारी निवडा (सद्या सेव्ह असलेले सर्व कर्मचारी):</label>
+            <label style="color:#2e7d32;">👤 कर्मचारी निवडा (सध्या सेव्ह असलेले सर्व कर्मचारी):</label>
             <select id="global_employee_select" onchange="loadSelectedEmployeeData()">
                 <option value="">-- नवीन कर्मचारी / निवडा --</option>
             </select>
@@ -375,7 +375,7 @@ tr:nth-child(even) { background-color: #f9f9f9; }
         <div id="macpResult" class="macp-result-box">माहिती भरा, तपशील येथे दिसतील.</div>
     </div>
 
-    <!-- PAGE 5 -->
+    <!-- PAGE 5 (सुधारित आणि समाविष्ट केलेला संपूर्ण अचूक कोड) -->
     <div id="page5" class="tab-content">
         <h3>वरिष्ठ श्रेणी / MACPS वेतननिश्चिती व फरक बिल</h3>
         <div class="entry-box-p5">
@@ -594,7 +594,7 @@ function calculateAutomaticFixationDiff() {
     recalculateVolumeFiveMathLogic();
 }
 
-// ----------------- प्रगत मॅथ लॉजिक (DUE & DRAWN CHS 0 नियम सुधारित) -----------------
+// ----------------- मुख्य प्रगत व अचूक मॅथ लॉजिक (DUE & DRAWN CHS 0 नियम सुधारित) -----------------
 function recalculateVolumeFiveMathLogic() {
     calculatedStatements.forEach(item => {
         let daysInMonth = item.actualDays; let pDays = item.presentDays;
