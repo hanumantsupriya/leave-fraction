@@ -1856,7 +1856,8 @@ function recalculateVolumeFiveMathLogic() {
     calculatedStatements.forEach(item => {
         let daysInMonth = item.actualDays; let pDays = item.presentDays;
         let curYear = 2000 + parseInt(item.month.split("-")[1]);
-
+        let isChsZeroPeriod = (currentDate.getFullYear() === 2020 && (currentDate.getMonth()+1 === 5 || currentDate.getMonth()+1 === 6 || currentDate.getMonth()+1 === 7));
+        let chsRate = isChsZeroPeriod ? 0.00 : 0.01;
         item.duBasic = Math.round((item.duBasicNominal / daysInMonth) * pDays);
         item.duDa = Math.round(item.duBasic * item.daRate); 
         item.duHra = Math.round(item.duBasic * item.hraRate); 
