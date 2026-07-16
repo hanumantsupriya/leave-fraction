@@ -1790,9 +1790,6 @@ function calculateAutomaticFixationDiff() {
     let targetMatrix = payMatrix[dueLevel];
     let nextStageBasic = targetMatrix.find(amt => amt >= drawnBasicStart) || targetMatrix[0];
     let nextStageIndex = targetMatrix.indexOf(nextStageBasic);
-
-    let isChsZeroPeriod = (currentDate.getFullYear() === 2020 && (currentDate.getMonth()+1 === 5 || currentDate.getMonth()+1 === 6 || currentDate.getMonth()+1 === 7));
-            let chsRate = isChsZeroPeriod ? 0.00 : 0.01;
     
     let dueBasicStart = nextStageBasic;
     let ruleText = "";
