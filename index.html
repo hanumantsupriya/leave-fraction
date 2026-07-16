@@ -1861,36 +1861,71 @@ function recalculateVolumeFiveMathLogic() {
         item.duDa = Math.round(item.duBasic * item.daRate); 
         item.duHra = Math.round(item.duBasic * item.hraRate); 
         item.duCps = Math.round((item.duBasic + item.duDa) * 0.10); 
-        // १. चालू महिना आणि वर्ष अचूक ओळखणे (महिना कॅपिटल करून तपासणे)
-// १. चालू महिना इंग्रजी/मराठी कॅपिटल करून तपासणे
-let curM = item.month.toUpperCase();
-let curY = parseInt(curYear) || 2020;
+        // लूप सुरू होण्याच्या ठिकाणी (While किंवा For लूपच्या आत) हा कोड अपडेट करा:
+while (currentDate <= targetEnd) {
+    let mName = currentDate.toLocaleString('mr', { month: 'long', year: 'numeric' });
+    let totalDays = getDaysInMonth(currentDate.getFullYear(), currentDate.getMonth());
+    
+    // 🎯 १. चालू महिन्याचे वर्ष आणि महिना नंबर लूपच्या आत अचूक शोधणे
+    let loopYear = currentDate.getFullYear();
+    let loopMonth = currentDate.getMonth() + 1; // मे = ५, जून = ६, जुलै = ७
 
-// ==================== DUE (देय) तक्ता गणना ====================
-if (curY === 2020 && (curM.includes("MAY") || curM.includes("JUN") || curM.includes("JUL") || curM.includes("मे") || curM.includes("जून") || curM.includes("जुलै"))) {
-    item.duChs = 0;
-} else {
-    item.duChs = Math.round(item.duBasic * 0.01); // मूळ वेतनावर १%
+    // महागाई भत्ता आणि HRA दर काढणे
+    let daPercent = getDaRateByDateFromExcel(currentDate);
+    let hraPercent = getHraRate(activeDueBasic);
+
+    // 🎯 २. फक्त आणि फक्त २०२० च्या मे, जून, जुलै महिन्यांसाठी CHS शून्य करण्याचा कडक नियम
+    let isChsZeroPeriod = (loopYear === 2020 && (loopMonth === 5 || loopMonth === 6 || loopMonth === 7));
+    let chsRate = isChsZeroPeriod ? 0.00 : 0.01;
+
+    // ==================== DUE (देय वरिष्ठ श्रेणी) गणना ====================
+    let dueD = activeDueBasic; 
+    let dueDa = Math.round(dueD * daPercent); 
+    let dueHra = Math.round(dueD * hraPercent);
+    let dueCps = Math.round((dueD + dueDa) * 0.10); 
+    
+    // CHS फक्त २०२० च्या मे-जून-जुलैमध्ये ० होईल, इतर वर्षात (२०२१, २०२२ इ.) मूळ वेतनावर १% मोजेल
+    let dueChs = isChsZeroPeriod ? 0 : Math.round(dueD * chsRate); 
+    let dueTotal = dueD + dueDa + dueHra + dueCps + dueChs;
+
+    // ==================== DRAWN (मिळालेली रक्कम) गणना ====================
+    let drawnD = activeDrawnBasic; 
+    let drawnDa = Math.round(drawnD * daPercent); 
+    let drawnHra = Math.round(drawnD * getHraRate(drawnD));
+    let drawnCps = Math.round((drawnD + drawnDa) * 0.10); 
+    
+    // 🎯 सुधारणा: DRAWN तक्त्यामध्ये देखील मे, जून, जुलै २०२० मध्ये CHS ० (शून्य) करणे
+    let drawnChs = isChsZeroPeriod ? 0 : Math.round(drawnD * chsRate); 
+    let drawnTotal = drawnD + drawnDa + drawnHra + drawnCps + drawnChs;
+
+    // अंतिम फरक विवरणपत्र बेरीज
+    let diff = dueTotal - drawnTotal; 
+    totalDifferenceSum += diff;
+
+    // ==================== तक्त्यामध्ये (DOM Table) रकाने जोडणे ====================
+    let r = tbody.insertRow();
+    r.innerHTML = `
+        <td><strong>${mName}</strong></td>
+        <td>${totalDays}</td>
+        <td contenteditable='true' class='present-days-editable' oninput='recalcRowFix(this,${activeDueBasic},${activeDrawnBasic},${daPercent},${totalDays},${chsRate})'>${totalDays}</td>
+        <td>${dueD}</td>
+        <td>${dueDa}</td>
+        <td>${dueHra}</td>
+        <td>${dueCps}</td>
+        <td class="due-chs-cell">${dueChs}</td>
+        <td style='color:blue;'>${dueTotal}</td>
+        <td contenteditable='true' class='drawn-editable' oninput='recalcRowDrawn(this,${daPercent},${totalDays},${chsRate})'>${drawnD}</td>
+        <td>${drawnDa}</td>
+        <td>${drawnHra}</td>
+        <td>${drawnCps}</td>
+        <td class="drawn-chs-cell">${drawnChs}</td>
+        <td>${drawnTotal}</td>
+        <td style='color:green;font-weight:bold;' class='row-diff-cell'>${diff}</td>
+    `;
+
+    // पुढील महिन्याकडे जाणे
+    currentDate.setMonth(currentDate.getMonth() + 1);
 }
-// Due ची एकूण अचूक बेरीज
-item.duTotal = item.duBasic + item.duDa + item.duHra + item.duCps + item.duChs;
-
-
-// ==================== DRAWN (मिळालेली) तक्ता गणना ====================
-// २. हाच नियम DRAWN CHS साठी लागू करणे
-if (curY === 2020 && (curM.includes("MAY") || curM.includes("JUN") || curM.includes("JUL") || curM.includes("मे") || curM.includes("जून") || curM.includes("जुलै"))) {
-    item.drChs = 0; // मिळालेल्या रकान्यातही CHS ० होणार
-} else {
-    // जर तुमच्या व्हेरिएबलचे नाव drChs किंवा drawnChs जे असेल त्याप्रमाणे लिहा
-    item.drChs = Math.round(item.drBasic * 0.01); 
-}
-// Drawn ची एकूण अचूक बेरीज (drChs आणि drCps सह)
-item.drTotal = item.drBasic + item.drDa + item.drHra + item.drCps + item.drChs;
-
-
-// ==================== DIFFERENCE (फरक) गणना ====================
-// ३. दोन्ही तक्त्यांची ग्रँड टोटल वजा करून अंतिम फरक काढणे
-item.diff = item.duTotal - item.drTotal;
 
         item.drBasic = Math.round((item.drBasicNominal / daysInMonth) * pDays);
         item.drDa = Math.round(item.drBasic * item.daRate); 
