@@ -1856,13 +1856,16 @@ function recalculateVolumeFiveMathLogic() {
         let daysInMonth = item.actualDays; 
         let pDays = item.presentDays;
         
-        // १. तारीख स्ट्रिंगमधून ("MAY-20") वर्ष अचूक वेगळे काढणे
-        let monthParts = item.month.split("-");
-        let curYear = 2000 + (parseInt(monthParts[1]) || 0);
-        let curM = monthParts[0].toUpperCase();
+        // 🎯 १. "MAY 20" किंवा "MAY-20" मधून महिना आणि वर्ष १००% अचूक ओळखणे
+        let txt = item.month.toUpperCase().replace("-", " "); // डॅश असेल तर स्पेस करणे
+        let isMay = txt.includes("MAY") || txt.includes("मे");
+        let isJun = txt.includes("JUN") || txt.includes("जून");
+        let isJul = txt.includes("JUL") || txt.includes("जुलै");
+        let isYear2020 = txt.includes("20") || txt.includes("२०"); // "20" साल तपासणे
 
-        // २. फक्त आणि फक्त २०२० मधील मे, जून, जुलै महिन्यांसाठी CHS दर ० (शून्य) करणे
-        let isChsZeroPeriod = (curYear === 2020 && (curM.includes("MAY") || curM.includes("JUN") || curM.includes("JUL") || curM.includes("मे") || curM.includes("जून") || curM.includes("जुलै")));
+        // 🎯 २. फक्त आणि फक्त २०२० मधील मे, जून, जुलै महिन्यांसाठी कडक नियम
+        let isChsZeroPeriod = (isYear2020 && (isMay || isJun || isJul));
+        let chsRate = isChsZeroPeriod ? 0.00 : 0.01;
 
         // ==================== DUE (देय) तक्ता गणना ====================
         item.duBasic = Math.round((item.duBasicNominal / daysInMonth) * pDays);
@@ -1872,7 +1875,7 @@ function recalculateVolumeFiveMathLogic() {
         
         // मनपा नियम: CHS नेहमी मूळ वेतनावर (Basic Pay) मोजले जाते
         item.duChs = isChsZeroPeriod ? 0 : Math.round(item.duBasic * 0.01); 
-        // एकूण बेरीज (HRA, CPS आणि CHS सह दुरुस्त केली आहे)
+        // एकूण बेरीज (HRA, CPS आणि CHS सह)
         item.duTotal = item.duBasic + item.duDa + item.duHra + item.duCps + item.duChs;
 
         // ==================== DRAWN (मिळालेली रक्कम) गणना ====================
@@ -1883,7 +1886,7 @@ function recalculateVolumeFiveMathLogic() {
         
         // DRAWN तक्त्यामध्ये देखील मे, जून, जुलै २०२० मध्ये CHS ० (शून्य) करणे
         item.drChs = isChsZeroPeriod ? 0 : Math.round(item.drBasic * 0.01); 
-        // एकूण बेरीज (drCps आणि drChs सह दुरुस्त केली आहे)
+        // एकूण बेरीज (drCps आणि drChs सह)
         item.drTotal = item.drBasic + item.drDa + item.drHra + item.drCps + item.drChs;
 
         // ==================== DIFFERENCE (फरक) गणना ====================
