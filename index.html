@@ -1856,14 +1856,25 @@ function recalculateVolumeFiveMathLogic() {
     calculatedStatements.forEach(item => {
         let daysInMonth = item.actualDays; let pDays = item.presentDays;
         let curYear = 2000 + parseInt(item.month.split("-")[1]);
-        let isChsZeroPeriod = (currentDate.getFullYear() === 2020 && (currentDate.getMonth()+1 === 5 || currentDate.getMonth()+1 === 6 || currentDate.getMonth()+1 === 7));
-        let chsRate = isChsZeroPeriod ? 0.00 : 0.01;
+
         item.duBasic = Math.round((item.duBasicNominal / daysInMonth) * pDays);
         item.duDa = Math.round(item.duBasic * item.daRate); 
         item.duHra = Math.round(item.duBasic * item.hraRate); 
         item.duCps = Math.round((item.duBasic + item.duDa) * 0.10); 
-        item.duChs = (curYear === 2020 && (item.month.includes("MAY") || item.month.includes("JUN") || item.month.includes("JUL"))) ? 0 : Math.round((item.duBasic + item.duDa) * 0.01); 
-        item.duTotal = item.duBasic + item.duDa + item.duHra;
+        // १. चालू महिना आणि वर्ष अचूक ओळखणे (महिना कॅपिटल करून तपासणे)
+let curM = item.month.toUpperCase();
+let curY = parseInt(curYear) || 2020; 
+
+// २. मे, जून, जुलै २०२० मध्ये CHS ० (शून्य) करण्याचा अचूक फॉर्म्युला
+if (curY === 2020 && (curM.includes("MAY") || curM.includes("JUN") || curM.includes("JUL") || curM.includes("मे") || curM.includes("जून") || curM.includes("जुलै"))) {
+    item.duChs = 0;
+} else {
+    // मनपा नियम: CHS फक्त मूळ वेतनावर (Basic Pay) मोजले जाते
+    item.duChs = Math.round(item.duBasic * 0.01); 
+}
+
+// ३. एकूण देय रक्कमेची अचूक बेरीज (HRA, CPS आणि CHS सह)
+item.duTotal = item.duBasic + item.duDa + item.duHra + item.duCps + item.duChs;
 
         item.drBasic = Math.round((item.drBasicNominal / daysInMonth) * pDays);
         item.drDa = Math.round(item.drBasic * item.daRate); 
