@@ -1862,33 +1862,35 @@ function recalculateVolumeFiveMathLogic() {
         item.duHra = Math.round(item.duBasic * item.hraRate); 
         item.duCps = Math.round((item.duBasic + item.duDa) * 0.10); 
         // १. चालू महिना आणि वर्ष अचूक ओळखणे (महिना कॅपिटल करून तपासणे)
+// १. चालू महिना इंग्रजी/मराठी कॅपिटल करून तपासणे
 let curM = item.month.toUpperCase();
-let curY = parseInt(curYear) || 2020; 
+let curY = parseInt(curYear) || 2020;
 
-// २. मे, जून, जुलै २०२० मध्ये CHS ० (शून्य) करण्याचा अचूक फॉर्म्युला
+// ==================== DUE (देय) तक्ता गणना ====================
 if (curY === 2020 && (curM.includes("MAY") || curM.includes("JUN") || curM.includes("JUL") || curM.includes("मे") || curM.includes("जून") || curM.includes("जुलै"))) {
     item.duChs = 0;
 } else {
-    // मनपा नियम: CHS फक्त मूळ वेतनावर (Basic Pay) मोजले जाते
-    item.duChs = Math.round(item.duBasic * 0.01); 
+    item.duChs = Math.round(item.duBasic * 0.01); // मूळ वेतनावर १%
 }
-
-// ३. एकूण देय रक्कमेची अचूक बेरीज (HRA, CPS आणि CHS सह)
+// Due ची एकूण अचूक बेरीज
 item.duTotal = item.duBasic + item.duDa + item.duHra + item.duCps + item.duChs;
-        // १. चालू महिना आणि वर्ष अचूक ओळखणे (महिना कॅपिटल करून तपासणे)
-let curM = item.month.toUpperCase();
-let curY = parseInt(curYear) || 2020; 
 
-// २. मे, जून, जुलै २०२० मध्ये CHS ० (शून्य) करण्याचा अचूक फॉर्म्युला
+
+// ==================== DRAWN (मिळालेली) तक्ता गणना ====================
+// २. हाच नियम DRAWN CHS साठी लागू करणे
 if (curY === 2020 && (curM.includes("MAY") || curM.includes("JUN") || curM.includes("JUL") || curM.includes("मे") || curM.includes("जून") || curM.includes("जुलै"))) {
-    item.drChs = 0;
+    item.drChs = 0; // मिळालेल्या रकान्यातही CHS ० होणार
 } else {
-    // मनपा नियम: CHS फक्त मूळ वेतनावर (Basic Pay) मोजले जाते
-    item.drChs = Math.round(item.duBasic * 0.01); 
+    // जर तुमच्या व्हेरिएबलचे नाव drChs किंवा drawnChs जे असेल त्याप्रमाणे लिहा
+    item.drChs = Math.round(item.drBasic * 0.01); 
 }
+// Drawn ची एकूण अचूक बेरीज (drChs आणि drCps सह)
+item.drTotal = item.drBasic + item.drDa + item.drHra + item.drCps + item.drChs;
 
-// ३. एकूण देय रक्कमेची अचूक बेरीज (HRA, CPS आणि CHS सह)
-item.duTotal = item.duBasic + item.duDa + item.duHra + item.duCps + item.drChs;
+
+// ==================== DIFFERENCE (फरक) गणना ====================
+// ३. दोन्ही तक्त्यांची ग्रँड टोटल वजा करून अंतिम फरक काढणे
+item.diff = item.duTotal - item.drTotal;
 
         item.drBasic = Math.round((item.drBasicNominal / daysInMonth) * pDays);
         item.drDa = Math.round(item.drBasic * item.daRate); 
