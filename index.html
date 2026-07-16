@@ -1866,7 +1866,7 @@ while (currentDate <= targetEnd) {
     let mName = currentDate.toLocaleString('mr', { month: 'long', year: 'numeric' });
     let totalDays = getDaysInMonth(currentDate.getFullYear(), currentDate.getMonth());
     
-    // 🎯 १. चालू महिन्याचे वर्ष आणि महिना नंबर लूपच्या आत अचूक शोधणे
+    // १. चालू महिन्याचे वर्ष आणि महिना नंबर लूपच्या आत अचूक ओळखणे
     let loopYear = currentDate.getFullYear();
     let loopMonth = currentDate.getMonth() + 1; // मे = ५, जून = ६, जुलै = ७
 
@@ -1874,7 +1874,7 @@ while (currentDate <= targetEnd) {
     let daPercent = getDaRateByDateFromExcel(currentDate);
     let hraPercent = getHraRate(activeDueBasic);
 
-    // 🎯 २. फक्त आणि फक्त २०२० च्या मे, जून, जुलै महिन्यांसाठी CHS शून्य करण्याचा कडक नियम
+    // २. फक्त आणि फक्त २०२० च्या मे, जून, जुलै महिन्यांसाठी CHS शून्य करण्याचा कडक नियम
     let isChsZeroPeriod = (loopYear === 2020 && (loopMonth === 5 || loopMonth === 6 || loopMonth === 7));
     let chsRate = isChsZeroPeriod ? 0.00 : 0.01;
 
@@ -1884,7 +1884,7 @@ while (currentDate <= targetEnd) {
     let dueHra = Math.round(dueD * hraPercent);
     let dueCps = Math.round((dueD + dueDa) * 0.10); 
     
-    // CHS फक्त २०२० च्या मे-जून-जुलैमध्ये ० होईल, इतर वर्षात (२०२१, २०२२ इ.) मूळ वेतनावर १% मोजेल
+    // CHS फक्त २०२० च्या मे-जून-जुलैमध्ये ० होईल, इतर वर्षात मूळ वेतनावर १% मोजेल
     let dueChs = isChsZeroPeriod ? 0 : Math.round(dueD * chsRate); 
     let dueTotal = dueD + dueDa + dueHra + dueCps + dueChs;
 
@@ -1894,7 +1894,7 @@ while (currentDate <= targetEnd) {
     let drawnHra = Math.round(drawnD * getHraRate(drawnD));
     let drawnCps = Math.round((drawnD + drawnDa) * 0.10); 
     
-    // 🎯 सुधारणा: DRAWN तक्त्यामध्ये देखील मे, जून, जुलै २०२० मध्ये CHS ० (शून्य) करणे
+    // DRAWN तक्त्यामध्ये देखील मे, जून, जुलै २०२० मध्ये CHS ० (शून्य) करणे
     let drawnChs = isChsZeroPeriod ? 0 : Math.round(drawnD * chsRate); 
     let drawnTotal = drawnD + drawnDa + drawnHra + drawnCps + drawnChs;
 
@@ -1902,7 +1902,7 @@ while (currentDate <= targetEnd) {
     let diff = dueTotal - drawnTotal; 
     totalDifferenceSum += diff;
 
-    // ==================== तक्त्यामध्ये (DOM Table) रकाने जोडणे ====================
+    // ==================== तक्त्यामध्ये (DOM Table) रकाने जोडणे (Duly Fixed) ====================
     let r = tbody.insertRow();
     r.innerHTML = `
         <td><strong>${mName}</strong></td>
